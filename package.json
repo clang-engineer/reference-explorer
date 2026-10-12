@@ -1,0 +1,35 @@
+{
+  "name": "@clang-engineer/reference-explorer",
+  "version": "0.1.0",
+  "description": "Web component and ES module for exploring reference catalog data.",
+  "type": "module",
+  "license": "MIT",
+  "author": "clang.engineer",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clang-engineer/reference-explorer.git"
+  },
+  "homepage": "https://github.com/clang-engineer/reference-explorer#readme",
+  "bugs": {
+    "url": "https://github.com/clang-engineer/reference-explorer/issues"
+  },
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": "./src/index.js",
+    "./element": "./src/element.js",
+    "./style.css": "./src/styles/explorer.css",
+    "./adapters/devkit": "./src/adapters/devkit.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
+  },
+  "keywords": [
+    "reference",
+    "catalog",
+    "explorer",
+    "web-component",
+    "graph"
+  ]
+}
