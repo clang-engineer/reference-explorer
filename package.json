@@ -1,5 +1,5 @@
 {
-  "name": "@clang-engineer/reference-explorer",
+  "name": "@clang.engineer/reference-explorer",
   "version": "0.1.0",
   "description": "Web component and ES module for exploring reference catalog data.",
   "type": "module",
