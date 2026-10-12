@@ -193,6 +193,8 @@ html[data-mode='dark'] .dk-app {
   .dk-app .dk-search-wrap { order: 3; flex-basis: 100%; max-width: none; }
   .dk-app .dk-layout, .dk-app[data-detail-open='true'] .dk-layout { grid-template-columns: minmax(0,1fr); gap: 10px; }
   .dk-app .dk-sidebar { padding: 4px; }
+  .dk-app .dk-panel-host { order: 3; }
+  .dk-app .dk-detail { max-height: 520px; }
   .dk-app .dk-nav-toggle { display: flex; justify-content: space-between; width: 100%; border: 0; background: transparent; min-height: 40px; }
   .dk-app .dk-navigation { display: none; max-height: 260px; padding: 4px 8px; }
   .dk-app[data-nav-open='true'] .dk-navigation { display: block; }

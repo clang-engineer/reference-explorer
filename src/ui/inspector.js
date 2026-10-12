@@ -16,10 +16,10 @@ export function createInspector(root, panel, { onClose, signal }) {
   }
   function sync() {
     if (!opened) return;
-    const narrow = root.clientWidth < 1050 && typeof dialog.showModal === 'function';
-    root.dataset.detailOpen = String(!narrow);
-    host.hidden = narrow;
-    if (narrow) {
+    const modal = root.clientWidth < 720 && typeof dialog.showModal === 'function';
+    root.dataset.detailOpen = String(!modal);
+    host.hidden = modal;
+    if (modal) {
       if (panel.parentElement !== dialog) dialog.append(panel);
       if (!dialog.open) {
         previousOverflow = document.body.style.overflow;
