@@ -3,19 +3,21 @@ import { filterModel, readHash } from './catalog.js';
 // Navigation groups reference existing categories; they never replace their data.
 // Mixed/new categories go to References instead of silently disappearing.
 const GROUPS = [
-  ['cli', 'CLI', ['File Operations', 'Text Search', 'Text Processing', 'Log Monitoring', 'Navigation', 'System Monitoring', 'Network', 'HTTP', 'Compression']],
+  ['cli', 'CLI', ['File Operations', 'Text Search', 'Text Processing', 'Log Monitoring', 'Navigation', 'System Monitoring', 'Network', 'HTTP', 'Compression', 'Command History', 'Benchmarking', '시스템 & 서버', 'CLI 기록·탐색']],
   ['terminal', 'Terminal', ['Terminal Multiplexer', 'Terminal Applications']],
-  ['editor', 'Editor', ['Terminal Editors']],
-  ['shell', 'Shell', ['Shell', '셸']],
-  ['vcs', 'VCS', ['Git', '버전 관리']],
+  ['editor', 'Editor', ['Terminal Editors', 'Editors', 'Editor Configurations', '에디터 & TUI']],
+  ['shell', 'Shell', ['Shell', 'Shell Frameworks', 'Shell Prompt', '셸']],
+  ['plugins', 'Plugins', ['Shell Plugins', 'tmux Plugins']],
+  ['database', 'Database', ['Database', '데이터']],
+  ['vcs', 'VCS', ['Git', '버전 관리', 'Git & 버전 관리']],
   ['window', 'Window Manager', ['Window Managers', 'macOS']],
-  ['development', 'Development', ['Development', 'Programming Languages', '개발 도구']],
+  ['development', 'Development', ['Development', 'Programming Languages', 'Containers', '개발 도구', '보안 & 비밀정보']],
   ['reference', 'References', []],
 ];
 export function navigationGroups(model) {
   const groups = GROUPS.map(([id, name]) => ({ id: 'domain:' + id, name, categories: [], tools: new Set() }));
   for (const category of model.categories) {
-    const index = GROUPS.findIndex(([, , names]) => names.includes(category.name));
+    const index = GROUPS.findIndex(([id, , names]) => names.includes(category.name) || (id === 'plugins' && category.name.startsWith('Neovim Plugins ·')));
     const group = groups[index < 0 ? groups.length - 1 : index];
     const tools = [...model.tools.values()].filter(tool => tool.categories.includes(category.id));
     group.categories.push({ ...category, count: tools.length });

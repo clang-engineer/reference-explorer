@@ -23,8 +23,9 @@ export function splitReference(data) {
 }
 export function validateCatalog(data, key) {
   if (!data || !Array.isArray(data[key])) throw new Error('Invalid ' + key + ' catalog');
+  if (key === 'groups' && data.guides !== undefined && !Array.isArray(data.guides)) throw new Error('Invalid guides');
   const slugs = new Set();
-  for (const group of data[key]) {
+  for (const group of [...data[key], ...(key === 'groups' && data.guides?.length ? [{ items: data.guides }] : [])]) {
     if (!group || typeof group !== 'object') throw new Error('Invalid group');
     if (key === 'categories' && (!Array.isArray(group.commands) || !Array.isArray(group.relations))) throw new Error('Invalid category');
     if (key === 'groups') {
@@ -45,7 +46,7 @@ export function buildModel(catalog = { categories: [] }, cheats = { groups: [] }
     const id = toolId(explicitId || name);
     if (!id) return null;
     if (!tools.has(id)) tools.set(id, {
-      id, name: String(name || id), description: '', categories: [], aliases: new Set([id, ...Object.keys(aliases).filter(alias => aliases[alias] === id)]),
+      id, name: String(name || id), kind: 'tool', description: '', categories: [], aliases: new Set([id, ...Object.keys(aliases).filter(alias => aliases[alias] === id)]),
       tldr: '', examples: [], official: [], custom: [], links: [],
     });
     const tool = tools.get(id);
@@ -71,6 +72,7 @@ export function buildModel(catalog = { categories: [] }, cheats = { groups: [] }
       names.set(command.name, tool.id);
       member(tool, category);
       tool.description ||= String(command.description || '');
+      if (command.kind) tool.kind = command.kind;
       tool.tldr ||= command.tldr || '';
       tool.usage ||= command.usage || '';
       tool.examples = [...new Set([...tool.examples, ...(command.examples || [])])];
@@ -87,12 +89,14 @@ export function buildModel(catalog = { categories: [] }, cheats = { groups: [] }
       edges.push({ ...relation, id: 'edge-' + edges.length, from: from.id, to: to.id, category: category.id });
     }
   }
-  for (const [index, group] of cheats.groups.entries()) {
+  const sheetGroups = [...cheats.groups, ...(cheats.guides?.length ? [{ title: '주제별 자료', items: cheats.guides }] : [])];
+  for (const [index, group] of sheetGroups.entries()) {
     const extra = { id: 'sheet-' + index, name: String(group.title || '참고 문서'), why: '' };
     for (const item of group.items) {
       const tool = ensure(item.name, item.tool_id || item.slug);
       if (!tool) continue;
       tool.name = String(item.name || tool.name);
+      if (item.kind) tool.kind = item.kind;
       tool.aliases.add(String(item.slug || '').toLowerCase());
       tool.description ||= String(item.desc || '');
       tool.tldr = item.tldr || tool.tldr;
