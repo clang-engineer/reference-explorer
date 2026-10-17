@@ -59,7 +59,7 @@ export function mount(root, config = {}) {
     const overview = state.category === 'all' && !state.query.trim();
     root.dataset.currentView = 'explorer';
     renderNavigation($, state);
-    $('[data-status]').textContent = state.error || (overview ? `${state.model.tools.size}개 도구 · ${state.model.edges.length}개 관계 · 분야를 펼치거나 검색하세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
+    $('[data-status]').textContent = state.error || (overview ? `${state.model.tools.size}개 도구 · ${state.model.edges.length}개 관계 · 분야 → 분류 → 도구 순으로 펼치거나 검색하세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
     $('[data-retry]').hidden = !state.error;
     $('[data-results]').hidden = !state.query.trim() || !searchOpen;
     $('[data-clear-search]').hidden = !state.query.trim();
@@ -139,7 +139,7 @@ export function mount(root, config = {}) {
     }
   }
   function activate(event) {
-    const element = event.target.closest('button, [data-tool], [data-edge], [data-category], [data-expand]');
+    const element = event.target.closest('button, [data-tool], [data-edge], [data-category], [data-expand], [data-open-map]');
     if (!element || !root.contains(element)) return;
     const data = element.dataset;
     if ('retry' in data) { start(); return; }
@@ -147,6 +147,7 @@ export function mount(root, config = {}) {
     if ('closeDetail' in data && state.model) { closeDetail(); return; }
     if ('clearSearch' in data && state.model) { clearSearch(); $('[data-search]').focus(); return; }
     if (!state.model) return;
+    if (data.openMap) { goToScope(data.openMap); return; }
     if (data.category) {
       if (state.category === 'all' && !state.query.trim()) {
         const parent = state.groups.find(group => group.id === data.category || group.categories.some(category => category.id === data.category));
@@ -169,7 +170,15 @@ export function mount(root, config = {}) {
       const edge = state.model.edges.find(item => item.id === data.edge);
       if (edge) { state.tab = 'about'; choose(edge.to); state.edge = edge.id; renderDetail(); }
     } else if (data.related) {
-      if (state.category === 'all' && !state.query.trim()) { const parent = state.groups.find(group => group.tools.has(data.related)); if (parent) state.expanded.add(parent.id); render(); choose(data.related, false); }
+      if (state.category === 'all' && !state.query.trim()) {
+        const parent = state.groups.find(group => group.tools.has(data.related));
+        if (parent) {
+          state.expanded.add(parent.id);
+          const category = parent.categories.find(category => state.model.tools.get(data.related).categories.includes(category.id));
+          state.expanded.add(category.id);
+        }
+        render(); choose(data.related, false);
+      }
       else findTool(data.related, 'about');
     }
     else if (data.tab) { state.tab = data.tab; remember(); renderDetail(); if (event.detail === 0) $('[data-tab="' + data.tab + '"]').focus(); }
@@ -183,7 +192,7 @@ export function mount(root, config = {}) {
   }
   listen(root, 'click', activate);
   listen(root, 'keydown', event => {
-    if (event.target.matches('[data-tool], [data-edge], [data-category], [data-expand]') && event.target.tagName.toLowerCase() === 'g' && ['Enter', ' '].includes(event.key)) { event.preventDefault(); activate(event); }
+    if (event.target.matches('[data-tool], [data-edge], [data-category], [data-expand], [data-open-map]') && event.target.tagName.toLowerCase() === 'g' && ['Enter', ' '].includes(event.key)) { event.preventDefault(); activate(event); }
   });
   listen($('[data-search]'), 'input', event => {
     state.query = event.target.value; searchOpen = !!state.query.trim(); render(); remember(); viewport.scrollTop = 0; viewport.scrollLeft = 0;
@@ -203,7 +212,7 @@ export function mount(root, config = {}) {
   });
   let drag = null;
   listen(viewport, 'pointerdown', event => {
-    if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest('[data-tool], [data-edge], [data-category], [data-expand]')) return;
+    if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest('[data-tool], [data-edge], [data-category], [data-expand], [data-open-map]')) return;
     drag = { x: event.clientX, y: event.clientY, left: viewport.scrollLeft, top: viewport.scrollTop };
     viewport.setPointerCapture(event.pointerId); viewport.classList.add('is-dragging'); event.preventDefault();
   });

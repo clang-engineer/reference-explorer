@@ -46,8 +46,13 @@ export function readExplorerHash(hash, model, groups, defaultView = 'map') {
   else if (!requested && scope === 'all' && legacy.tool) scope = model.tools.get(legacy.tool).categories[0] || 'all';
   const validTabs = ['about', 'usage', 'resources'];
   const tab = validTabs.includes(params.get('tab')) ? params.get('tab') : legacy.view === 'sheet' ? 'usage' : 'about';
-  const expanded = new Set((params.get('open') || '').split(',').filter(id => groups.some(group => group.id === id)));
+  const expanded = new Set((params.get('open') || '').split(',').filter(id => groups.some(group => group.id === id || group.categories.some(category => category.id === id))));
   const parent = groups.find(group => group.categories.some(category => category.id === scope));
   if (parent) expanded.add(parent.id);
+  if (scope === 'all' && legacy.tool) {
+    const toolCategory = model.tools.get(legacy.tool).categories[0];
+    const toolGroup = groups.find(group => group.categories.some(category => category.id === toolCategory));
+    if (toolGroup) { expanded.add(toolGroup.id); expanded.add(toolCategory); }
+  }
   return { tool: legacy.tool, category: scope, query: legacy.query, tab, expanded };
 }

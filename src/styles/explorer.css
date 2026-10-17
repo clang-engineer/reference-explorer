@@ -137,10 +137,9 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-overview-title { fill: var(--dk-text); font-size: 17px; font-weight: 650; }
 .dk-app .dk-overview-sign { fill: var(--dk-domain); font-size: 22px; }
 .dk-app .dk-overview-meta { fill: var(--dk-muted); font-size: 12px; }
-.dk-app .dk-overview-category rect, .dk-app .dk-overview-jump rect { fill: var(--dk-bg); }
+.dk-app .dk-overview-category rect { fill: var(--dk-bg); }
 .dk-app .dk-overview-category text { fill: var(--dk-text); font-size: 12px; }
 .dk-app .dk-overview-category .dk-category-count { fill: var(--dk-muted); font-size: 11px; }
-.dk-app .dk-overview-jump text { fill: var(--dk-accent); font-size: 12px; }
 .dk-app .dk-overview [role='button'] { cursor: pointer; }
 .dk-app .dk-overview [role='button']:hover rect, .dk-app .dk-overview [role='button']:focus-visible rect { stroke: var(--dk-domain); stroke-width: 2; }
 .dk-app .dk-overview text { pointer-events: none; }

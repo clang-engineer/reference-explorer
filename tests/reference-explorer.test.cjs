@@ -29,6 +29,52 @@ test('devkit adapter builds an explorer model from catalog data', async () => {
   assert.ok(model.tools.get('ripgrep').custom.some(link => link.url === 'https://example.com/rg'));
 });
 
+test('overview expands domains and categories independently without a separate expand button', async () => {
+  const { buildModel } = await import('../src/core/catalog.js');
+  const { navigationGroups } = await import('../src/core/navigation.js');
+  const { overviewHtml } = await import('../src/graph/overview.js');
+  const model = buildModel({ categories: [
+    { name: 'Text Search', commands: [{ name: 'grep' }], relations: [] },
+    { name: 'File Operations', commands: [{ name: 'cp' }], relations: [] },
+    { name: 'Editors', commands: [{ name: 'vim' }], relations: [] },
+  ] });
+  const groups = navigationGroups(model);
+  const cli = groups.find(group => group.name === 'CLI');
+  const search = cli.categories.find(category => category.name === 'Text Search');
+  const expanded = new Set();
+  const render = () => overviewHtml(groups, expanded, 1, 2, model);
+  assert.ok(!render().includes(`data-expand="${search.id}"`));
+  expanded.add(cli.id);
+  assert.ok(render().includes(`data-expand="${search.id}" role="button" tabindex="0" aria-expanded="false"`));
+  assert.ok(!render().includes('data-tool='));
+  expanded.add(search.id);
+  const html = render();
+  assert.ok(html.includes(`data-expand="${search.id}" role="button" tabindex="0" aria-expanded="true"`));
+  assert.ok(html.includes('data-tool="grep"'));
+  assert.ok(!html.includes('data-tool="cp"'));
+  assert.ok(!html.includes('data-tool="vim"'));
+  assert.ok(!html.includes('dk-overview-jump'));
+  assert.ok(html.includes(`data-open-map="${search.id}" role="button" tabindex="0" aria-label="Text Search 관계도 보기"`));
+  assert.ok(html.includes('<title>Text Search 관계도 보기</title>'));
+  assert.ok(html.includes('text-anchor="middle">↗</text>'));
+  assert.ok(!html.includes('관계도 →'));
+  expanded.delete(search.id);
+  assert.ok(!render().includes('data-tool='));
+  expanded.add(search.id);
+  expanded.delete(cli.id);
+  assert.ok(!render().includes('data-tool='));
+});
+
+test('overview category expansion survives hash restoration', async () => {
+  const { buildModel } = await import('../src/core/catalog.js');
+  const { navigationGroups, readExplorerHash } = await import('../src/core/navigation.js');
+  const model = buildModel({ categories: [{ name: 'Text Search', commands: [{ name: 'grep' }], relations: [] }] });
+  const groups = navigationGroups(model);
+  const ids = [groups[0].id, groups[0].categories[0].id];
+  const hash = '#' + new URLSearchParams({ scope: 'all', open: [...ids, 'invalid'].join(',') });
+  assert.deepEqual([...readExplorerHash(hash, model, groups).expanded], ids);
+});
+
 test('public module exports mount', async () => {
   const api = await import('../src/index.js');
   assert.equal(typeof api.mount, 'function');
