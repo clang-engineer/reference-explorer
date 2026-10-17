@@ -14,6 +14,8 @@ python3 -m http.server 8000
 
 Open http://localhost:8000/examples/basic.html in your browser. No install or build step is required. The example loads its catalog from GitHub, so an internet connection is required.
 
+Compare three visual concepts at http://localhost:8000/examples/concepts.html (technical documentation, developer workbench, and terminal). Preview styles are isolated from the default component.
+
 Run tests with Node.js:
 
 ```sh

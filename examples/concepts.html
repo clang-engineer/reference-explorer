@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko" data-mode="light" data-concept="technical">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reference Explorer · Design Concepts</title>
+  <link rel="stylesheet" href="../src/styles/explorer.css">
+  <link rel="stylesheet" href="./concepts.css">
+</head>
+<body>
+  <header class="concept-bar">
+    <div><p class="concept-eyebrow">REFERENCE EXPLORER / DESIGN STUDY</p><h1>콘셉트 비교</h1></div>
+    <nav class="concept-switcher" aria-label="디자인 콘셉트">
+      <button type="button" data-concept-choice="technical" aria-pressed="true">01 기술 문서형</button>
+      <button type="button" data-concept-choice="workbench" aria-pressed="false">02 개발 도구형</button>
+      <button type="button" data-concept-choice="terminal" aria-pressed="false">03 터미널형</button>
+    </nav>
+    <a href="./basic.html">현재 디자인 ↗</a>
+  </header>
+  <section class="concept-caption" aria-label="선택한 콘셉트 설명">
+    <h2 data-concept-title>기술 문서형</h2>
+    <p data-concept-description aria-live="polite">흰 바탕, 얇은 구분선, 파란 강조색. 장식을 덜고 정보의 위계를 드러냅니다.</p>
+    <span>기능은 동일 · 스타일만 비교</span>
+  </section>
+  <main>
+    <reference-explorer src="https://raw.githubusercontent.com/clang-engineer/devkit/main/reference/catalog.json"></reference-explorer>
+  </main>
+  <script type="module" src="./concepts.js"></script>
+</body>
+</html>
