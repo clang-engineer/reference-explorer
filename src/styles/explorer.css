@@ -99,20 +99,29 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-viewport.is-dragging { cursor: grabbing; user-select: none; }
 .dk-app .dk-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; width: max-content; min-width: 100%; }
 .dk-app .dk-board { width: max-content; border: 1px solid var(--dk-line); background: var(--dk-card); overflow: hidden; }
-.dk-app .dk-board h3 { font-size: 14px; padding: 14px 20px; margin: 0; border-bottom: 1px solid var(--dk-line); }
+.dk-app .dk-board h3 { font-size: 12px; padding: 8px 12px; margin: 0; border-bottom: 1px solid var(--dk-line); }
 .dk-app svg { display: block; max-width: none; overflow: visible; font-family: inherit; }
 .dk-app svg rect { rx: 0; ry: 0; }
+.dk-app .dk-host-toggle { cursor: pointer; }
+.dk-app .dk-host-toggle rect { fill: var(--dk-tint); stroke: var(--dk-line); }
+.dk-app .dk-host-toggle text { fill: var(--dk-accent); font-size: 10px; pointer-events: none; }
+.dk-app .dk-host-toggle:hover rect, .dk-app .dk-host-toggle:focus-visible rect { stroke: var(--dk-accent); }
+.dk-app .dk-extension-frame { pointer-events: none; }
+.dk-app .dk-extension-frame rect { fill: none; stroke: var(--dk-domain); stroke-dasharray: 3 3; stroke-opacity: .6; }
+.dk-app .dk-extension-child rect { stroke: var(--dk-line); }
+.dk-app .dk-extension-child text { font-size: 11px; }
 .dk-app .dk-node { cursor: pointer; }
 .dk-app .dk-node rect { fill: var(--dk-card); stroke: var(--dk-edge); stroke-width: 1.2; }
 .dk-app .dk-node text { fill: var(--dk-text); pointer-events: none; }
-.dk-app .dk-node-title { font-size: 15px; font-weight: 650; }
-.dk-app .dk-node-hint { font-size: 10px; }
+.dk-app .dk-context-host rect { stroke-dasharray: 3 2; }
+.dk-app .dk-node-title { font-size: 12px; font-weight: 600; }
 .dk-app .dk-node:hover rect, .dk-app .dk-node:focus-visible rect, .dk-app .dk-node.is-related rect { stroke: var(--dk-accent); stroke-width: 2; }
 .dk-app .dk-node.is-selected rect { fill: var(--dk-root); stroke: var(--dk-accent); stroke-width: 2; }
 .dk-app .dk-node.is-selected text { fill: var(--dk-on-root); }
 .dk-app .dk-node.is-context:not(.is-selected):not(.is-related) { opacity: .6; }
 .dk-app .dk-edge { cursor: pointer; }
 .dk-app .dk-edge-hit { fill: none; stroke: transparent; stroke-width: 16; }
+.dk-app .dk-edge-halo { fill: none; stroke: var(--dk-card); stroke-width: 5; pointer-events: none; }
 .dk-app .dk-edge-line { fill: none; stroke: var(--dk-edge); stroke-width: 1.6; pointer-events: none; }
 .dk-app marker path { fill: var(--dk-edge); }
 .dk-app .dk-edge.is-complement .dk-edge-line { stroke-dasharray: 5 4; }
@@ -136,6 +145,41 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-overview [role='button'] { cursor: pointer; }
 .dk-app .dk-overview [role='button']:hover rect, .dk-app .dk-overview [role='button']:focus-visible rect { stroke: var(--dk-domain); stroke-width: 2; }
 .dk-app .dk-overview text { pointer-events: none; }
+
+/* Original source categories remain selectable facets of merged roles. */
+.dk-app .dk-tag-filters { display: flex; flex-wrap: wrap; flex: none; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--dk-line); max-height: 24dvh; overflow: auto; }
+.dk-app .dk-tag-filters button { min-height: 32px; padding: 4px 8px; font-size: 11px; }
+.dk-app .dk-tag-filters small { margin-left: 3px; font-size: 10px; }
+.dk-app .dk-tag-filters [aria-pressed='true'] { color: var(--dk-accent); background: var(--dk-tint); border-color: var(--dk-accent); }
+
+/* Macro links represent shared tools, not alternatives or inferred workflows. */
+.dk-app [data-overview-mode][aria-pressed='true'] { color: var(--dk-accent); background: var(--dk-tint); border-color: var(--dk-accent); }
+.dk-app .dk-stage.is-macro { width: 100%; align-items: stretch; }
+.dk-app .dk-macro-summary { border-bottom: 1px solid var(--dk-line); padding-bottom: 12px; }
+.dk-app .dk-macro-summary h3 { font-size: 16px; margin: 0 0 8px; }
+.dk-app .dk-macro-summary p { color: var(--dk-muted); font-size: 12px; margin: 4px 0; }
+.dk-app .dk-macro-canvas { display: grid; justify-items: center; padding: 12px 0; }
+.dk-app .dk-macro-shared { border-top: 1px solid var(--dk-line); padding-top: 8px; color: var(--dk-muted); font-size: 11px; }
+.dk-app .dk-macro-shared summary { cursor: pointer; padding: 4px 0; }
+.dk-app .dk-macro-shared ul { margin: 8px 0; padding-left: 20px; }
+.dk-app .dk-macro-shared li { padding: 4px 0; overflow-wrap: anywhere; }
+.dk-app .dk-macro-shared strong { display: block; color: var(--dk-text); font-weight: 500; }
+.dk-app .dk-macro-link-halo { fill: none; stroke: var(--dk-bg); stroke-width: 6; pointer-events: none; }
+.dk-app .dk-macro-link-line { fill: none; stroke: var(--dk-domain); pointer-events: none; }
+.dk-app .dk-macro-link-hit { fill: none; stroke: transparent; stroke-width: 18; }
+.dk-app .dk-macro-link:hover .dk-macro-link-line, .dk-app .dk-macro-link:focus-visible .dk-macro-link-line { stroke: var(--dk-accent); }
+.dk-app .dk-macro-node { cursor: pointer; }
+.dk-app .dk-macro-node rect { fill: var(--dk-card); stroke: var(--dk-line); }
+.dk-app .dk-macro-node text { pointer-events: none; }
+.dk-app .dk-macro-node:hover rect, .dk-app .dk-macro-node:focus-visible rect { stroke: var(--dk-accent); }
+.dk-app .dk-macro-node-title { fill: var(--dk-text); font-size: 12px; font-weight: 600; }
+.dk-app .dk-macro-node-count { fill: var(--dk-muted); font-size: 10px; }
+.dk-app .dk-macro-isolated { margin-top: 16px; border: 1px solid var(--dk-line); }
+.dk-app .dk-macro-isolated > summary { padding: 12px; cursor: pointer; font-size: 12px; }
+.dk-app .dk-macro-isolated-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 8px; padding: 12px; border-top: 1px solid var(--dk-line); }
+.dk-app .dk-macro-isolated-grid button { display: grid; gap: 4px; text-align: left; overflow-wrap: anywhere; }
+.dk-app .dk-macro-isolated-grid strong { font-size: 12px; }
+.dk-app .dk-macro-isolated-grid span { color: var(--dk-muted); font-size: 11px; }
 
 /* The map and tool detail share one modal, one screen at a time. */
 .dk-app .dk-relation-dialog { width: min(1200px, calc(100vw - 32px)); max-width: none; height: min(820px, calc(100dvh - 32px)); max-height: none; padding: 0; border: 1px solid var(--dk-line); background: var(--dk-card); color: var(--dk-text); overflow: hidden; }

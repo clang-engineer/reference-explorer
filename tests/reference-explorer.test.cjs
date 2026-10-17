@@ -96,9 +96,12 @@ test('category maps isolate modal SVG markers from the background map', async ()
   assert.ok(background.includes(`id="arrow-${category}"`));
   assert.ok(modal.includes(`id="arrow-modal-1-${category}"`));
   assert.ok(modal.includes(`marker-end="url(#arrow-modal-1-${category})"`));
+  assert.ok(modal.includes('markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6"'));
   assert.ok(!modal.includes(`id="arrow-${category}"`));
   assert.ok(modal.includes('data-tool="grep"'));
   assert.ok(modal.includes('data-tool="ripgrep"'));
+  assert.ok(modal.includes('<rect width="120" height="32"/>'));
+  assert.ok(!modal.includes('dk-node-hint'));
 });
 
 test('public module exports mount', async () => {

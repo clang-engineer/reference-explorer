@@ -1,7 +1,9 @@
 // Markup only: no network, history, or application event handlers.
 import { escapeHtml as esc } from '../core/reference-data.js';
 import { RELATIONS } from '../core/catalog.js';
-import { layoutCategory } from '../graph/layout.js';
+import { toolHierarchy } from '../core/extensions.js';
+import { layoutToolHierarchy } from '../graph/tool-hierarchy.js';
+import { routeConnections } from '../graph/routing.js';
 
 function shortLabel(value, limit) {
   let text = '', units = 0;
@@ -28,8 +30,9 @@ export const shellHtml = `
   <div class="dk-layout">
     <aside class="dk-sidebar" aria-label="도구 분야"><button type="button" class="dk-nav-toggle" data-toggle-nav aria-expanded="false">분야 선택 <span aria-hidden="true">⌄</span></button><nav class="dk-navigation" data-categories aria-label="전체와 세부 분류"></nav></aside>
     <section class="dk-explorer" aria-label="도구 탐색">
-      <div class="dk-map-header"><nav class="dk-breadcrumb" data-breadcrumb aria-label="지도 위치"></nav><div class="dk-maptools" data-maptools><span data-overview-actions><button type="button" data-expand-all>분류 모두 펼치기</button><button type="button" data-collapse-all>모두 접기</button></span><div>
+      <div class="dk-map-header"><nav class="dk-breadcrumb" data-breadcrumb aria-label="지도 위치"></nav><div class="dk-maptools" data-maptools><span data-overview-switch role="group" aria-label="전체 조망 방식"><button type="button" data-overview-mode="explore" aria-pressed="true">도구 탐색</button><button type="button" data-overview-mode="macro" aria-pressed="false">분류 관계도</button></span><span data-overview-actions><button type="button" data-expand-all>분류 모두 펼치기</button><button type="button" data-collapse-all>모두 접기</button></span><div>
         <button type="button" data-zoom="out" aria-label="지도 축소">−</button><output data-scale>100%</output><button type="button" data-zoom="in" aria-label="지도 확대">+</button><button type="button" data-zoom="fit">맞춤</button><button type="button" data-zoom="reset" aria-label="지도 배율 초기화">1:1</button></div></div></div>
+      <div class="dk-tag-filters" data-category-tags role="group" aria-label="세부 분류 필터" hidden></div>
       <div class="dk-viewport" data-viewport tabindex="0" aria-label="도구 지도. 드래그 또는 방향키로 이동하고 Tab으로 도구를 선택합니다."><div class="dk-stage" data-stage></div></div>
       <p class="dk-legend" data-legend></p>
     </section>
@@ -47,6 +50,17 @@ export function renderNavigation($, state) {
   $('[data-breadcrumb]').innerHTML = `<button type="button" data-category="all">전체 조망</button>` + (state.query ? '<span> / 전체 검색 결과</span>' : active ? `<span> / </span><button type="button" data-category="${active.id}">${active.name}</button>${category ? `<span> / ${esc(category.name)}</span>` : ''}` : '<span> / 분야별 탐색</span>');
 }
 
+export function renderTagFilters(target, model, categoryId, selected = '') {
+  const category = model.categories.find(category => category.id === categoryId);
+  target.hidden = !category?.tags?.length;
+  if (target.hidden) { target.innerHTML = ''; return; }
+  const tools = [...model.tools.values()].filter(tool => tool.categories.includes(categoryId));
+  const options = [{ id: '', name: '전체', count: tools.length }, ...category.tags.map(tag => ({
+    ...tag, count: tools.filter(tool => tool.categoryTags?.[categoryId]?.includes(tag.id)).length,
+  }))];
+  target.innerHTML = options.map(tag => `<button type="button" data-category-tag="${esc(tag.id)}" aria-pressed="${selected === tag.id}">${esc(tag.name)} <small>${tag.count}</small></button>`).join('');
+}
+
 export function renderMap(stage, state, filtered) {
   const document = stage.ownerDocument;
   stage.innerHTML = '';
@@ -55,27 +69,33 @@ export function renderMap(stage, state, filtered) {
     if (!state.query.trim() && state.category !== 'all' && (group ? !group.categories.some(item => item.id === category.id) : category.id !== state.category)) continue;
     const ids = [...filtered.visible].filter(id => state.model.tools.get(id).categories.includes(category.id));
     if (!ids.length) continue;
-    const edges = filtered.edges.filter(edge => edge.category === category.id);
-    const layout = layoutCategory(ids, edges);
+    const hierarchy = state.query.trim() ? { ids, groups: new Map(), owners: new Map(), hiddenCount: 0 }
+      : toolHierarchy(state.model, category.id, new Set(ids), state.expandedHosts);
+    const visible = new Set(hierarchy.ids);
+    const edges = filtered.edges.filter(edge => edge.category === category.id && visible.has(edge.from) && visible.has(edge.to));
+    const layout = layoutToolHierarchy(hierarchy, edges, Math.max(168, (stage.parentElement?.clientWidth || 992) - 32));
     const markerId = `arrow-${state.markerPrefix || ''}${category.id}`;
-    const edgeHtml = edges.map(edge => {
-      const from = layout.positions.get(edge.from), to = layout.positions.get(edge.to);
-      if (!from || !to) return '';
-      const x1 = from.x + 168, y1 = from.y + 29, x2 = to.x, y2 = to.y + 29;
-      const bend = Math.max(32, Math.abs(x2 - x1) / 2);
-      const path = x2 > x1 ? `M${x1},${y1} C${x1 + bend},${y1} ${x2 - bend},${y2} ${x2},${y2}`
-        : `M${from.x + 84},${from.y} C${from.x + 84},${from.y - 22} ${to.x + 84},${to.y - 22} ${to.x + 84},${to.y}`;
+    const routes = routeConnections(layout, edges);
+    const edgeHtml = edges.map((edge, index) => {
+      const route = routes[index];
+      if (!route) return '';
+      const path = route.path;
       const label = `${state.model.tools.get(edge.from).name} → ${state.model.tools.get(edge.to).name}: ${RELATIONS[edge.relation] || edge.relation || '관계'}`;
-      return `<g class="dk-edge${['complement', 'wrapper'].includes(edge.relation) ? ' is-complement' : ''}" data-edge="${edge.id}" role="button" tabindex="0" aria-label="${esc(label)}"><title>${esc(label)}</title><path class="dk-edge-hit" d="${path}"/><path class="dk-edge-line" d="${path}" marker-end="url(#${markerId})"/></g>`;
+      return `<g class="dk-edge${['complement', 'wrapper'].includes(edge.relation) ? ' is-complement' : ''}" data-edge="${edge.id}" role="button" tabindex="0" aria-label="${esc(label)}"><title>${esc(label)}</title><path class="dk-edge-hit" d="${path}"/><path class="dk-edge-halo" d="${path}"/><path class="dk-edge-line" d="${path}" marker-end="url(#${markerId})"/></g>`;
     }).join('');
-    const nodes = ids.map(id => {
+    const frames = layout.frames.map(frame => `<g class="dk-extension-frame"><title>${esc(state.model.tools.get(frame.host).name)} 확장 도구 · 소속 묶음이며 도구 관계선이 아닙니다.</title><rect x="${frame.x}" y="${frame.y}" width="${frame.width}" height="${frame.height}"/></g>`).join('');
+    const nodes = hierarchy.ids.map(id => {
       const tool = state.model.tools.get(id), pos = layout.positions.get(id);
-      const hint = tool.description ? shortLabel(tool.description, 24) : tool.tldr ? 'tldr · 빠른 사용법' : tool.custom.length ? '치트시트 있음' : '소개 · 관련 자료';
-      return `<g class="dk-node${filtered.matches.has(id) ? '' : ' is-context'}" data-tool="${esc(id)}" role="button" tabindex="0" aria-label="${esc(tool.name + ' 상세 보기')}" aria-pressed="false" transform="translate(${pos.x},${pos.y})"><title>${esc(tool.description || tool.name)}</title><rect width="168" height="58" rx="9"/><text x="14" y="25" class="dk-node-title">${esc(shortLabel(tool.name, 18))}</text><text x="14" y="44" class="dk-node-hint">${esc(hint)}</text></g>`;
+      const extensions = hierarchy.groups.get(id) || [];
+      const open = state.expandedHosts?.has(id) || false;
+      const width = layout.nodeWidth - (extensions.length ? 28 : 0);
+      const node = `<g class="dk-node${state.query.trim() && !filtered.matches.has(id) ? ' is-context' : ''}${!filtered.visible.has(id) ? ' dk-context-host' : ''}" data-tool="${esc(id)}" role="button" tabindex="0" aria-label="${esc(tool.name + ' 상세 보기')}" aria-pressed="false" transform="translate(${pos.x},${pos.y})"><title>${esc(tool.name + (!filtered.visible.has(id) ? ' · 사용 환경' : '') + (tool.description ? ' · ' + tool.description : ''))}</title><rect width="${width}" height="${layout.nodeHeight}"/><text x="10" y="21" class="dk-node-title">${esc(shortLabel(tool.name, extensions.length ? 8 : 12))}</text></g>`;
+      const toggle = extensions.length ? `<g class="dk-host-toggle" data-toggle-host="${esc(id)}" role="button" tabindex="0" aria-expanded="${open}" aria-label="${esc(tool.name)} 확장 도구 ${extensions.length}개 ${open ? '접기' : '펼치기'}" transform="translate(${pos.x + width + 2},${pos.y})"><title>${esc(tool.name)} 확장 도구 ${extensions.length}개</title><rect width="26" height="${layout.nodeHeight}"/><text x="13" y="21" text-anchor="middle">${open ? '−' : '+'}${extensions.length}</text></g>` : '';
+      return node + toggle;
     }).join('');
     const board = document.createElement('section');
     board.className = 'dk-board';
-    board.innerHTML = `<h3>${esc(category.name)} <small>${ids.length}</small></h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width * state.zoom}" height="${layout.height * state.zoom}" data-width="${layout.width}" data-height="${layout.height}" role="group" aria-label="${esc(category.name)} 관계 지도"><defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>${edgeHtml}${nodes}</svg>`;
+    board.innerHTML = `<h3>${esc(category.name)} <small>${ids.length}개${hierarchy.hiddenCount ? ` · 확장 ${hierarchy.hiddenCount}개 접힘` : ''}</small></h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width * state.zoom}" height="${layout.height * state.zoom}" data-width="${layout.width}" data-height="${layout.height}" role="group" aria-label="${esc(category.name)} 관계 지도"><defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>${frames}${edgeHtml}${nodes}</svg>`;
     stage.append(board);
   }
   if (!stage.children.length) stage.innerHTML = '<p class="dk-empty">검색 결과가 없습니다. 검색어 또는 분야를 바꿔보세요.</p>';

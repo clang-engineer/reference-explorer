@@ -1,0 +1,72 @@
+import { sourceExtensionHosts } from './extensions.js';
+
+// Explorer-only projection. The catalog and public buildModel/adapter output stay unchanged.
+function classification(name) {
+  if (name === 'Terminal Multiplexer') return ['terminal-multiplexer', 'Terminal Multiplexer', 'base', '멀티플렉서'];
+  if (name === 'tmux Plugins') return ['terminal-multiplexer', 'Terminal Multiplexer', 'plugins', 'tmux 플러그인'];
+  if (name === 'Database') return ['database', 'Database', 'base', 'DB 도구'];
+  if (name === 'Neovim Plugins · DB') return ['database', 'Database', 'neovim', 'Neovim 플러그인'];
+  if (['Shell', '셸'].includes(name)) return ['shell', 'Shell', 'base', '셸'];
+  if (name === 'Shell Frameworks') return ['shell', 'Shell', 'frameworks', '프레임워크'];
+  if (name === 'Shell Prompt') return ['shell', 'Shell', 'prompt', '프롬프트'];
+  if (name === 'Shell Plugins') return ['shell', 'Shell', 'plugins', '플러그인'];
+  if (['Editors', 'Terminal Editors'].includes(name)) return ['editor', 'Editors', 'base', '에디터'];
+  if (name === 'Editor Configurations') return ['editor', 'Editors', 'config', '설정·배포판'];
+  if (name.startsWith('Neovim Plugins · ')) {
+    const label = name.slice('Neovim Plugins · '.length);
+    return ['editor', 'Editors', `neovim:${label}`, `Neovim · ${label}`];
+  }
+  return null;
+}
+
+export function classifyExplorerModel(model) {
+  const categories = [], merged = new Map(), sources = new Map();
+  for (const source of model.categories) {
+    const rule = source.tags ? null : classification(source.name);
+    if (!rule) { categories.push(source); continue; }
+    const [role, name, tagId, tagName] = rule;
+    const id = `role:${role}`;
+    if (!merged.has(id)) {
+      const category = { id, name, why: '', aliases: [], tags: [] };
+      merged.set(id, category); categories.push(category);
+    }
+    const category = merged.get(id);
+    category.aliases.push(source.id, source.name);
+    let tag = category.tags.find(tag => tag.id === tagId);
+    if (!tag) { tag = { id: tagId, name: tagName, aliases: [] }; category.tags.push(tag); }
+    tag.aliases.push(source.id, source.name);
+    sources.set(source.id, { category: id, tag: tagId });
+  }
+  const tools = new Map([...model.tools].map(([id, source]) => {
+    const categoryTags = Object.fromEntries(Object.entries(source.categoryTags || {}).map(([id, tags]) => [id, [...tags]]));
+    const hostsByCategory = Object.fromEntries(Object.entries(source.hostsByCategory || {}).map(([id, hosts]) => [id, [...hosts]]));
+    const memberships = new Set();
+    for (const categoryId of source.categories) {
+      const mapped = sources.get(categoryId);
+      const target = mapped?.category || categoryId;
+      memberships.add(target);
+      const sourceName = model.categories.find(category => category.id === categoryId)?.name || '';
+      for (const host of sourceExtensionHosts(source.id, sourceName)) {
+        if (host === id || !model.tools.has(host)) continue;
+        const hosts = hostsByCategory[target] ||= [];
+        if (!hosts.includes(host)) hosts.push(host);
+      }
+      if (mapped) {
+        const tags = categoryTags[mapped.category] ||= [];
+        if (!tags.includes(mapped.tag)) tags.push(mapped.tag);
+      }
+    }
+    const tool = { ...source, categories: [...memberships], categoryTags, hostsByCategory };
+    tool.search = [source.search || '', ...tool.categories.map(id => categories.find(category => category.id === id)?.name || '')].join(' ').toLowerCase();
+    return [id, tool];
+  }));
+  const edges = model.edges.map(edge => {
+    const mapped = sources.get(edge.category);
+    return mapped ? { ...edge, category: mapped.category, sourceCategory: edge.category, tag: mapped.tag } : edge;
+  });
+  return { ...model, categories, tools, edges };
+}
+
+export function categoryTag(model, categoryId, requested) {
+  return model.categories.find(category => category.id === categoryId)?.tags?.find(tag => tag.id === requested)?.id || '';
+}

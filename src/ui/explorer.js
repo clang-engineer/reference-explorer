@@ -2,7 +2,11 @@ import { fetchCatalog } from '../core/reference-data.js';
 import { buildModel, splitReference, validateCatalog } from '../core/catalog.js';
 import { navigationGroups, explorerFilter, readExplorerHash } from '../core/navigation.js';
 import { overviewHtml } from '../graph/overview.js';
-import { shellHtml, renderNavigation, renderMap, renderList } from './views.js';
+import { buildCategoryOverview } from '../core/category-overview.js';
+import { classifyExplorerModel, categoryTag } from '../core/classification.js';
+import { tagHostExpansion } from '../core/extensions.js';
+import { categoryOverviewHtml } from '../graph/category-overview.js';
+import { shellHtml, renderNavigation, renderMap, renderList, renderTagFilters } from './views.js';
 import { createDetailPanel } from './details.js';
 import { createInspector } from './inspector.js';
 import { createRelationDialog } from './relation-dialog.js';
@@ -20,7 +24,8 @@ export function mount(root, config = {}) {
   const listen = (target, type, callback) => target.addEventListener(type, callback, { signal: lifetime.signal });
   root.dataset.devkitMounted = 'true';
   const defaults = (config.defaultView || root.dataset.defaultView) === 'sheet' ? 'sheet' : 'map';
-  const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', query: '', tab: 'about', zoom: 1, error: '', edge: '', overviewReturn: null };
+  const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', tag: '', query: '', tab: 'about', zoom: 1, error: '', edge: '', overviewMode: 'explore', expandedHosts: new Set(), overviewReturn: null };
+  let categoryOverview;
   let loadRequest = 0;
   let catalogRequest;
   root.classList.add('dk-app');
@@ -50,26 +55,37 @@ export function mount(root, config = {}) {
   function remember() {
     const scope = state.model.categories.find(category => category.id === state.category)?.name || state.category;
     const hash = new URLSearchParams({ scope, tab: state.tab });
+    if (state.overviewMode === 'macro') hash.set('overview', 'macro');
     if (state.expanded.size) hash.set('open', [...state.expanded].join(','));
+    if (state.tag) hash.set('tag', state.tag);
+    if (state.expandedHosts.size || state.tag || state.tool) hash.set('hosts', [...state.expandedHosts].join(','));
     if (state.tool) hash.set('tool', state.tool);
     if (state.query) hash.set('q', state.query);
     history.replaceState(null, '', '#' + hash);
   }
   function render() {
     if (!state.model) return;
-    const filtered = explorerFilter(state.model, state.groups, state.category, state.query);
+    const filtered = explorerFilter(state.model, state.groups, state.category, state.query, state.tag);
     const overview = state.category === 'all' && !state.query.trim();
+    const macro = overview && state.overviewMode === 'macro';
     root.dataset.currentView = 'explorer';
     renderNavigation($, state);
-    $('[data-status]').textContent = state.error || (overview ? `${state.model.tools.size}개 도구 · ${state.model.edges.length}개 관계 · 분야 → 분류 → 도구 순으로 펼치거나 검색하세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
+    renderTagFilters($('[data-category-tags]'), state.model, state.query.trim() ? 'all' : state.category, state.tag);
+    $('[data-status]').textContent = state.error || (macro
+      ? `${categoryOverview.nodes.length}개 분류 · ${categoryOverview.links.length}개 공통 도구 연결 · 분류를 선택하면 내부 관계도를 엽니다`
+      : overview ? `${state.model.tools.size}개 도구 · ${state.model.edges.length}개 관계 · 분야 → 분류 → 도구 순으로 펼치거나 검색하세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
     $('[data-retry]').hidden = !state.error;
     $('[data-results]').hidden = !state.query.trim() || !searchOpen;
     $('[data-clear-search]').hidden = !state.query.trim();
-    $('[data-overview-actions]').hidden = !overview;
+    $('[data-overview-actions]').hidden = !overview || macro;
+    $('[data-overview-switch]').hidden = !overview;
+    root.querySelectorAll('[data-overview-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.overviewMode === state.overviewMode)));
     if (state.query.trim()) renderList($('[data-list]'), state, filtered); else $('[data-list]').innerHTML = '';
-    if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, viewport.clientWidth < 700 ? 1 : 2, state.model, state.tool);
+    stage.classList.toggle('is-macro', macro);
+    if (macro) stage.innerHTML = categoryOverviewHtml(categoryOverview, { zoom: state.zoom, compact: viewport.clientWidth < 700, maxWidth: viewport.clientWidth - 32 });
+    else if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, viewport.clientWidth < 700 ? 1 : 2, state.model, state.tool, state.expandedHosts);
     else renderMap(stage, state, filtered);
-    $('[data-legend]').textContent = overview ? (viewport.clientWidth < 700 ? '위아래로 스크롤해 모든 분야를 보세요. +로 분류 펼치기 · 선은 분류 연결입니다.' : '전체 조망에서 분야를 펼치고 도구를 선택하세요. 도구 관계는 분류 안에서 확인할 수 있습니다.') : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 관계는 학습 순서나 출시 연대가 아닙니다. 배경을 드래그하거나 스크롤해 이동하세요.';
+    $('[data-legend]').textContent = macro ? '선 = 공통 도구 · 굵기 = 공통 도구 수 · 내부 관계 수는 원본 분류에 등록된 도구 관계입니다. 대안·보완·학습 순서를 뜻하지 않습니다.' : overview ? (viewport.clientWidth < 700 ? '위아래로 스크롤해 모든 분야를 보세요. +로 분류 펼치기 · 선은 분류 연결입니다.' : '전체 조망에서 분야를 펼치고 도구를 선택하세요. 도구 관계는 분류 안에서 확인할 수 있습니다.') : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 관계는 학습 순서나 출시 연대가 아닙니다. 배경을 드래그하거나 스크롤해 이동하세요.';
     $('[data-scale]').textContent = Math.round(state.zoom * 100) + '%';
     highlight();
   }
@@ -114,7 +130,7 @@ export function mount(root, config = {}) {
   }
   function goToScope(scope) {
     if (state.category === 'all' && scope !== 'all' && !state.query.trim()) state.overviewReturn = { expanded: new Set(state.expanded), zoom: state.zoom, left: viewport.scrollLeft, top: viewport.scrollTop };
-    state.category = scope; state.query = ''; searchOpen = false; $('[data-search]').value = ''; state.zoom = 1;
+    state.category = scope; state.tag = ''; state.query = ''; searchOpen = false; $('[data-search]').value = ''; state.zoom = 1;
     setNav(false);
     const parent = state.groups.find(group => group.id === scope || group.categories.some(category => category.id === scope));
     if (parent) state.expanded.add(parent.id);
@@ -128,6 +144,7 @@ export function mount(root, config = {}) {
     const tool = state.model.tools.get(id);
     if (!tool) return;
     state.tab = tab;
+    for (const host of Object.values(tool.hostsByCategory || {}).flat()) state.expandedHosts.add(host);
     searchOpen = false;
     if (keepSearch && state.query.trim()) render();
     else goToScope(tool.categories[0] || 'all');
@@ -136,12 +153,12 @@ export function mount(root, config = {}) {
   function fitOverview() {
     const svg = stage.querySelector('svg');
     if (svg && state.category === 'all' && !state.query.trim()) {
-      setZoom(Math.min(1, Math.max(.78, (viewport.clientWidth - 32) / Number(svg.dataset.width))));
+      setZoom(Math.min(1, Math.max(state.overviewMode === 'macro' ? .3 : .78, (viewport.clientWidth - 32) / Number(svg.dataset.width))));
       viewport.scrollLeft = 0;
     }
   }
   function activate(event) {
-    const element = event.target.closest('button, [data-tool], [data-edge], [data-category], [data-expand], [data-open-map]');
+    const element = event.target.closest('button, [data-tool], [data-edge], [data-category], [data-expand], [data-open-map], [data-toggle-host]');
     if (!element || !root.contains(element)) return;
     const data = element.dataset;
     if ('retry' in data) { start(); return; }
@@ -150,9 +167,27 @@ export function mount(root, config = {}) {
     if ('clearSearch' in data && state.model) { clearSearch(); $('[data-search]').focus(); return; }
     if (!state.model) return;
     if (data.openMap) { relationDialog.open(data.openMap, state.model, state.groups, element); return; }
+    if (data.toggleHost) {
+      if (!state.expandedHosts.delete(data.toggleHost)) state.expandedHosts.add(data.toggleHost);
+      render(); remember();
+      [...stage.querySelectorAll('[data-toggle-host]')].find(button => button.dataset.toggleHost === data.toggleHost)?.focus({ preventScroll: true });
+      return;
+    }
+    if ('categoryTag' in data) {
+      state.tag = categoryTag(state.model, state.category, data.categoryTag); state.zoom = 1;
+      state.expandedHosts = tagHostExpansion(state.model, state.category, state.tag);
+      render(); remember(); viewport.scrollTop = 0; viewport.scrollLeft = 0;
+      [...$('[data-category-tags]').querySelectorAll('button')].find(button => button.dataset.categoryTag === state.tag)?.focus({ preventScroll: true });
+      return;
+    }
+    if (data.overviewMode) {
+      state.overviewMode = data.overviewMode; state.zoom = 1;
+      render(); fitOverview(); remember(); viewport.scrollTop = 0;
+      return;
+    }
     if (data.category) {
-      if (state.category === 'all' && !state.query.trim()) {
-        const parent = state.groups.find(group => group.id === data.category || group.categories.some(category => category.id === data.category));
+      if (state.category === 'all' && !state.query.trim() && state.groups.some(group => group.id === data.category)) {
+        const parent = state.groups.find(group => group.id === data.category);
         if (parent) { state.expanded.add(parent.id); render(); remember(); return; }
       }
       goToScope(data.category);
@@ -194,7 +229,7 @@ export function mount(root, config = {}) {
   }
   listen(root, 'click', activate);
   listen(root, 'keydown', event => {
-    if (event.target.matches('[data-tool], [data-edge], [data-category], [data-expand], [data-open-map]') && event.target.tagName.toLowerCase() === 'g' && ['Enter', ' '].includes(event.key)) { event.preventDefault(); activate(event); }
+    if (event.target.matches('[data-tool], [data-edge], [data-category], [data-expand], [data-open-map], [data-toggle-host]') && event.target.tagName.toLowerCase() === 'g' && ['Enter', ' '].includes(event.key)) { event.preventDefault(); activate(event); }
   });
   listen($('[data-search]'), 'input', event => {
     state.query = event.target.value; searchOpen = !!state.query.trim(); render(); remember(); viewport.scrollTop = 0; viewport.scrollLeft = 0;
@@ -214,7 +249,7 @@ export function mount(root, config = {}) {
   });
   let drag = null;
   listen(viewport, 'pointerdown', event => {
-    if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest('[data-tool], [data-edge], [data-category], [data-expand], [data-open-map]')) return;
+    if (event.pointerType !== 'mouse' || event.button !== 0 || event.target.closest('[data-tool], [data-edge], [data-category], [data-expand], [data-open-map], [data-toggle-host]')) return;
     drag = { x: event.clientX, y: event.clientY, left: viewport.scrollLeft, top: viewport.scrollTop };
     viewport.setPointerCapture(event.pointerId); viewport.classList.add('is-dragging'); event.preventDefault();
   });
@@ -267,6 +302,7 @@ export function mount(root, config = {}) {
     }
   });
   function restore() {
+    state.overviewReturn = null;
     Object.assign(state, readExplorerHash(location.hash, state.model, state.groups, defaults));
     $('[data-search]').value = state.query; searchOpen = false; render(); if (state.tool) choose(state.tool, false); else { inspector.hide({ focus: false }); renderDetail(); } centerSelected(); fitOverview();
   }
@@ -289,8 +325,9 @@ export function mount(root, config = {}) {
         model = buildModel(reference.catalog, reference.cheats);
       }
       if (request !== loadRequest) return;
-      state.model = model;
+      state.model = classifyExplorerModel(model);
       state.groups = navigationGroups(state.model);
+      categoryOverview = buildCategoryOverview(state.model);
       state.error = '';
       $('[data-search]').disabled = false; restore();
     } catch {
