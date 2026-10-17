@@ -46,6 +46,10 @@ mount(document.querySelector('[data-reference-explorer]'), {
 });
 ```
 
+## Appearance
+
+The default style is terminal-inspired: dark green, monospace typography, and square panels. Set `data-mode="light"` on the host `<html>` element to opt into a light palette; `data-mode="dark"` uses the default dark palette. The host controls its own page background and layout.
+
 ## Devkit adapter
 
 ```js

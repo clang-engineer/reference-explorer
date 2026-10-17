@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reference Explorer Example</title>
   <link rel="stylesheet" href="../src/styles/explorer.css">
-  <style>body{margin:0;padding:24px;font-family:system-ui,sans-serif;background:#f8fafc;color:#213047}</style>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; padding: 24px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #101412; color: #d3dfd6; }
+    html[data-mode='light'] { color-scheme: light; }
+    html[data-mode='light'] body { background: #f4f7f4; color: #202e24; }
+  </style>
 </head>
 <body>
   <reference-explorer src="https://raw.githubusercontent.com/clang-engineer/devkit/main/reference/catalog.json"></reference-explorer>

@@ -1,33 +1,31 @@
 /* Shared explorer. Host layout stays outside this stylesheet. */
 .dk-app {
-  --dk-bg: #f6f8fc;
-  --dk-card: #fff;
-  --dk-text: #20304a;
-  --dk-muted: #596b84;
-  --dk-line: #dce3ef;
-  --dk-accent: #365fd7;
-  --dk-tint: #edf2ff;
-  --dk-edge: #95a5bd;
-  --dk-domain: #7184a3;
+  display: block;
+  --dk-bg: #101412;
+  --dk-card: #151b17;
+  --dk-text: #d3dfd6;
+  --dk-muted: #98ad9e;
+  --dk-line: #3c5042;
+  --dk-accent: #a2d6ac;
+  --dk-tint: #233c2a;
+  --dk-edge: #718e79;
+  --dk-domain: #80a98b;
+  --dk-root: #233c2a;
+  --dk-on-root: #c1edc9;
+  --dk-root-hint: #9ec2a7;
+  color-scheme: dark;
   color: var(--dk-text);
-  font: 14px/1.6 system-ui, -apple-system, sans-serif;
+  font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   min-width: 0;
   margin-bottom: 2rem;
   container: devkit / inline-size;
 }
-html[data-mode='dark'] .dk-app {
-  --dk-bg: #111a29; --dk-card: #182335; --dk-text: #e4ebf6;
-  --dk-muted: #a1b1c9; --dk-line: #34435b; --dk-accent: #97b4ff;
-  --dk-tint: #263956; --dk-edge: #778ba9;
-  color-scheme: dark;
-}
-@media (prefers-color-scheme: dark) {
-  html:not([data-mode='light']) .dk-app {
-    --dk-bg: #111a29; --dk-card: #182335; --dk-text: #e4ebf6;
-    --dk-muted: #a1b1c9; --dk-line: #34435b; --dk-accent: #97b4ff;
-    --dk-tint: #263956; --dk-edge: #778ba9;
-    color-scheme: dark;
-  }
+html[data-mode='light'] .dk-app {
+  --dk-bg: #f4f7f4; --dk-card: #fff; --dk-text: #202e24;
+  --dk-muted: #526858; --dk-line: #c5d2c8; --dk-accent: #28613a;
+  --dk-tint: #e2eee5; --dk-edge: #718e79; --dk-domain: #567b60;
+  --dk-root: #233c2a; --dk-on-root: #e3f3e7; --dk-root-hint: #bdd6c3;
+  color-scheme: light;
 }
 .dk-app *, .dk-app *::before, .dk-app *::after { box-sizing: border-box; }
 .dk-app [hidden] { display: none !important; }
@@ -35,7 +33,7 @@ html[data-mode='dark'] .dk-app {
 .dk-app button {
   font: inherit; color: var(--dk-text); cursor: pointer;
   background: var(--dk-card); border: 1px solid var(--dk-line);
-  border-radius: 8px; padding: 7px 11px; min-height: 36px; line-height: 1.4;
+  border-radius: 0; padding: 7px 11px; min-height: 36px; line-height: 1.4;
 }
 .dk-app button:hover { background: var(--dk-tint); border-color: var(--dk-accent); }
 .dk-app button:disabled { cursor: wait; opacity: .6; }
@@ -49,17 +47,18 @@ html[data-mode='dark'] .dk-app {
 /* One global search, always in reach. Results do not move the canvas. */
 .dk-app .dk-heading { display: flex; align-items: center; gap: 20px; padding: 6px 0 20px; }
 .dk-app .dk-brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; }
-.dk-app .dk-brand-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; color: #fff; background: #365fd7; font-size: 28px; }
+.dk-app .dk-brand-icon { display: grid; place-items: center; width: 34px; height: 34px; color: var(--dk-accent); background: var(--dk-tint); border: 1px solid var(--dk-line); font-size: 22px; }
 .dk-app .dk-eyebrow { color: var(--dk-muted); font-size: 11px; letter-spacing: .12em; font-weight: 650; margin: 0 0 3px; }
-.dk-app .dk-brand h2 { font-size: 20px; letter-spacing: -.04em; margin: 0; }
+.dk-app .dk-brand h2 { font-size: 18px; letter-spacing: -.02em; margin: 0; }
 .dk-app .dk-search-wrap { position: relative; flex: 1; max-width: 560px; margin-left: auto; z-index: 5; }
 .dk-app .dk-search { display: flex; align-items: center; width: 100%; }
 .dk-app .dk-search-icon { position: absolute; left: 14px; font-size: 25px; color: var(--dk-muted); }
-.dk-app .dk-search input { width: 100%; height: 46px; padding: 10px 42px; font: inherit; font-size: 16px; border: 1px solid var(--dk-line); border-radius: 11px; color: var(--dk-text); background: var(--dk-card); }
+.dk-app .dk-search input { width: 100%; height: 38px; padding: 8px 42px; font: inherit; font-size: 14px; border: 1px solid var(--dk-line); border-radius: 0; color: var(--dk-text); background: var(--dk-card); }
+.dk-app .dk-search input::placeholder { color: var(--dk-muted); opacity: 1; }
 .dk-app .dk-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
-.dk-app .dk-search-clear { position: absolute; top: 5px; right: 5px; border: 0; font-size: 20px; padding: 2px 10px; }
+.dk-app .dk-search-clear { position: absolute; top: 1px; right: 5px; border: 0; font-size: 20px; padding: 2px 10px; }
 .dk-app [data-fullscreen] { white-space: nowrap; font-size: 13px; }
-.dk-app .dk-search-results { position: absolute; inset: calc(100% + 8px) 0 auto; max-height: min(460px, 65vh); overflow: auto; overscroll-behavior: contain; background: var(--dk-card); border: 1px solid var(--dk-line); border-radius: 12px; box-shadow: 0 12px 36px #0b1f4426; padding: 10px; }
+.dk-app .dk-search-results { position: absolute; inset: calc(100% + 8px) 0 auto; max-height: min(460px, 65vh); overflow: auto; overscroll-behavior: contain; background: var(--dk-card); border: 1px solid var(--dk-line); padding: 10px; }
 .dk-app .dk-search-hint { font-size: 11px; color: var(--dk-muted); padding: 5px 6px 10px; margin: 0; }
 .dk-app .dk-search-row { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--dk-line); padding: 7px 0; }
 .dk-app .dk-tool-row { min-width: 0; flex: 1; text-align: left; border: 0; padding: 8px; }
@@ -72,7 +71,7 @@ html[data-mode='dark'] .dk-app {
 /* No empty inspector column. The graph gets the available width. */
 .dk-app .dk-layout { display: grid; grid-template-columns: 208px minmax(0,1fr); gap: 14px; align-items: start; }
 .dk-app[data-detail-open='true'] .dk-layout { grid-template-columns: 190px minmax(0,1fr) 320px; }
-.dk-app .dk-sidebar { min-width: 0; background: var(--dk-card); border: 1px solid var(--dk-line); border-radius: 14px; padding: 10px; }
+.dk-app .dk-sidebar { min-width: 0; background: var(--dk-card); border: 1px solid var(--dk-line); padding: 10px; }
 .dk-app .dk-nav-toggle { display: none; }
 .dk-app .dk-navigation { max-height: 700px; overflow: auto; scrollbar-width: thin; }
 .dk-app .dk-navigation button { background: transparent; border-color: transparent; text-align: left; }
@@ -88,7 +87,7 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-navigation button:hover { background: var(--dk-bg); }
 
 /* Canvas chrome; typography has fixed readable sizes, not rem inherited from posts. */
-.dk-app .dk-explorer { min-width: 0; border: 1px solid var(--dk-line); border-radius: 14px; overflow: hidden; background: var(--dk-card); }
+.dk-app .dk-explorer { min-width: 0; border: 1px solid var(--dk-line); overflow: hidden; background: var(--dk-card); }
 .dk-app .dk-map-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--dk-line); }
 .dk-app .dk-breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 3px; font-size: 12px; color: var(--dk-muted); }
 .dk-app .dk-breadcrumb button { border: 0; padding: 4px 2px; background: transparent; color: var(--dk-accent); font-size: inherit; }
@@ -96,20 +95,21 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-maptools { flex-wrap: wrap; gap: 10px; }
 .dk-app .dk-maptools button { font-size: 12px; padding: 5px 8px; min-width: 30px; min-height: 32px; }
 .dk-app .dk-maptools output { font-size: 11px; color: var(--dk-muted); width: 35px; text-align: center; }
-.dk-app .dk-viewport { height: 620px; overflow: auto; cursor: grab; background: radial-gradient(var(--dk-line) .8px, transparent .8px) 0 0 / 20px 20px var(--dk-bg); scrollbar-width: thin; }
+.dk-app .dk-viewport { height: 620px; overflow: auto; cursor: grab; background: var(--dk-bg); scrollbar-width: thin; }
 .dk-app .dk-viewport.is-dragging { cursor: grabbing; user-select: none; }
 .dk-app .dk-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; width: max-content; min-width: 100%; }
-.dk-app .dk-board { width: max-content; border: 1px solid var(--dk-line); border-radius: 12px; background: var(--dk-card); overflow: hidden; }
+.dk-app .dk-board { width: max-content; border: 1px solid var(--dk-line); background: var(--dk-card); overflow: hidden; }
 .dk-app .dk-board h3 { font-size: 14px; padding: 14px 20px; margin: 0; border-bottom: 1px solid var(--dk-line); }
 .dk-app svg { display: block; max-width: none; overflow: visible; font-family: inherit; }
+.dk-app svg rect { rx: 0; ry: 0; }
 .dk-app .dk-node { cursor: pointer; }
 .dk-app .dk-node rect { fill: var(--dk-card); stroke: var(--dk-edge); stroke-width: 1.2; }
 .dk-app .dk-node text { fill: var(--dk-text); pointer-events: none; }
 .dk-app .dk-node-title { font-size: 15px; font-weight: 650; }
 .dk-app .dk-node-hint { font-size: 10px; }
 .dk-app .dk-node:hover rect, .dk-app .dk-node:focus-visible rect, .dk-app .dk-node.is-related rect { stroke: var(--dk-accent); stroke-width: 2; }
-.dk-app .dk-node.is-selected rect { fill: #365fd7; stroke: #365fd7; stroke-width: 2; }
-.dk-app .dk-node.is-selected text { fill: #fff; }
+.dk-app .dk-node.is-selected rect { fill: var(--dk-root); stroke: var(--dk-accent); stroke-width: 2; }
+.dk-app .dk-node.is-selected text { fill: var(--dk-on-root); }
 .dk-app .dk-node.is-context:not(.is-selected):not(.is-related) { opacity: .6; }
 .dk-app .dk-edge { cursor: pointer; }
 .dk-app .dk-edge-hit { fill: none; stroke: transparent; stroke-width: 16; }
@@ -119,23 +119,16 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-edge.is-selected .dk-edge-line, .dk-app .dk-edge:hover .dk-edge-line, .dk-app .dk-edge:focus-visible .dk-edge-line { stroke: var(--dk-accent); stroke-width: 2.6; }
 .dk-app .dk-legend { font-size: 11px; color: var(--dk-muted); padding: 10px 14px; margin: 0; border-top: 1px solid var(--dk-line); }
 
-/* Category map: clean separate branches. Colors encode domains, not chronology. */
-.dk-app [data-domain='domain:cli'] { --dk-domain: #527cce; }
-.dk-app [data-domain='domain:terminal'] { --dk-domain: #8f70c5; }
-.dk-app [data-domain='domain:editor'] { --dk-domain: #3b9388; }
-.dk-app [data-domain='domain:shell'] { --dk-domain: #498dba; }
-.dk-app [data-domain='domain:vcs'] { --dk-domain: #c57088; }
-.dk-app [data-domain='domain:window'] { --dk-domain: #aa8644; }
-.dk-app [data-domain='domain:development'] { --dk-domain: #798e50; }
+/* Category branches show membership, not chronology or tool relations. */
 .dk-app .dk-overview-lines path { fill: none; stroke: var(--dk-domain); stroke-opacity: .65; stroke-width: 1.6; }
-.dk-app .dk-overview-root { fill: #203453; }
-.dk-app .dk-overview-root-title { fill: #fff; font-size: 17px; font-weight: 650; }
-.dk-app .dk-overview-root-hint { fill: #c8d6ed; font-size: 11px; }
+.dk-app .dk-overview-root { fill: var(--dk-root); stroke: var(--dk-domain); }
+.dk-app .dk-overview-root-title { fill: var(--dk-on-root); font-size: 14px; font-weight: 650; }
+.dk-app .dk-overview-root-hint { fill: var(--dk-root-hint); font-size: 11px; }
 .dk-app .dk-overview-frame { fill: var(--dk-card); stroke: var(--dk-line); }
-.dk-app .dk-domain-stripe { fill: var(--dk-domain); }
+.dk-app .dk-domain-stripe { fill: var(--dk-accent); }
 .dk-app .dk-overview-toggle rect { fill: transparent; }
-.dk-app .dk-overview-title { fill: var(--dk-text); font-size: 17px; font-weight: 650; }
-.dk-app .dk-overview-sign { fill: var(--dk-domain); font-size: 22px; }
+.dk-app .dk-overview-title { fill: var(--dk-text); font-size: 14px; font-weight: 650; }
+.dk-app .dk-overview-sign { fill: var(--dk-domain); font-size: 18px; }
 .dk-app .dk-overview-meta { fill: var(--dk-muted); font-size: 12px; }
 .dk-app .dk-overview-category rect { fill: var(--dk-bg); }
 .dk-app .dk-overview-category text { fill: var(--dk-text); font-size: 12px; }
@@ -145,9 +138,9 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-overview text { pointer-events: none; }
 
 /* The map and tool detail share one modal, one screen at a time. */
-.dk-app .dk-relation-dialog { width: min(1200px, calc(100vw - 32px)); max-width: none; height: min(820px, calc(100dvh - 32px)); max-height: none; padding: 0; border: 1px solid var(--dk-line); border-radius: 16px; background: var(--dk-card); color: var(--dk-text); box-shadow: 0 18px 60px #0005; overflow: hidden; }
+.dk-app .dk-relation-dialog { width: min(1200px, calc(100vw - 32px)); max-width: none; height: min(820px, calc(100dvh - 32px)); max-height: none; padding: 0; border: 1px solid var(--dk-line); background: var(--dk-card); color: var(--dk-text); overflow: hidden; }
 .dk-app .dk-relation-dialog[open] { display: flex; flex-direction: column; }
-.dk-app .dk-relation-dialog::backdrop { background: #0a142680; }
+.dk-app .dk-relation-dialog::backdrop { background: #050a0780; }
 .dk-app .dk-relation-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--dk-line); }
 .dk-app .dk-relation-header h2 { margin: 0; font-size: 17px; }
 .dk-app .dk-relation-workspace { display: grid; grid-template-columns: minmax(0, 1fr); flex: 1; min-height: 0; }
@@ -155,16 +148,16 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-relation-dialog .dk-detail { min-height: 0; max-height: none; border: 0; border-radius: 0; }
 .dk-app .dk-relation-dialog .dk-legend { flex: none; margin: 0; padding: 8px 16px; border-top: 1px solid var(--dk-line); }
 @media (max-width: 720px) {
-  .dk-app .dk-relation-dialog { width: calc(100vw - 16px); height: calc(100dvh - 16px); border-radius: 12px; }
+  .dk-app .dk-relation-dialog { width: calc(100vw - 16px); height: calc(100dvh - 16px); }
 }
 
 /* One inspector DOM, docked on wide screens or promoted into a native dialog. */
 .dk-app .dk-panel-host { min-width: 0; }
-.dk-app .dk-detail { border: 1px solid var(--dk-line); border-radius: 14px; background: var(--dk-card); max-height: 740px; overflow: auto; scrollbar-width: thin; }
+.dk-app .dk-detail { border: 1px solid var(--dk-line); background: var(--dk-card); max-height: 740px; overflow: auto; scrollbar-width: thin; }
 .dk-app .dk-detail-actions { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 1; background: var(--dk-card); padding: 10px 14px; border-bottom: 1px solid var(--dk-line); color: var(--dk-muted); font-size: 12px; }
 .dk-app .dk-detail-actions button { font-size: 12px; }
 .dk-app .dk-detail-head { padding: 20px 20px 16px; }
-.dk-app .dk-detail-head h2 { font-size: 26px; letter-spacing: -.035em; margin: 8px 0 12px; overflow-wrap: anywhere; }
+.dk-app .dk-detail-head h2 { font-size: 23px; letter-spacing: -.02em; margin: 8px 0 12px; overflow-wrap: anywhere; }
 .dk-app .dk-detail-head > p:last-child { font-size: 14px; line-height: 1.8; margin: 0; }
 .dk-app .dk-detail-tabs { display: flex; border-block: 1px solid var(--dk-line); gap: 8px; padding: 0 16px; }
 .dk-app .dk-detail-tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; padding: 12px 8px; font-size: 13px; }
@@ -173,15 +166,15 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-detail-body h3 { font-size: 14px; margin: 22px 0 10px; }
 .dk-app .dk-detail-body > h3:first-child { margin-top: 0; }
 .dk-app .dk-muted { font-size: 12px; color: var(--dk-muted); }
-.dk-app .dk-relation { margin: 10px 0; border: 1px solid var(--dk-line); border-radius: 9px; }
+.dk-app .dk-relation { margin: 10px 0; border: 1px solid var(--dk-line); border-radius: 0; }
 .dk-app .dk-relation summary { padding: 12px; cursor: pointer; font-size: 13px; }
 .dk-app .dk-relation summary > span:first-child { font-weight: 650; }
-.dk-app .dk-badge { display: inline-block; font-size: 11px; color: var(--dk-accent); background: var(--dk-tint); border-radius: 4px; padding: 0 5px; margin-left: 5px; }
+.dk-app .dk-badge { display: inline-block; font-size: 11px; color: var(--dk-accent); background: var(--dk-tint); padding: 0 5px; margin-left: 5px; }
 .dk-app .dk-relation dl { margin: 0; padding: 6px 14px; }
 .dk-app .dk-relation dt { font-size: 11px; color: var(--dk-muted); margin-bottom: 5px; }
 .dk-app .dk-relation dd { margin: 0 0 14px; }
 .dk-app .dk-relation > button { margin: 0 12px 14px; font-size: 12px; }
-.dk-app pre { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--dk-bg); border: 1px solid var(--dk-line); padding: 12px; border-radius: 8px; margin: 8px 0; line-height: 1.7; }
+.dk-app pre { white-space: pre-wrap; overflow-wrap: anywhere; background: var(--dk-bg); border: 1px solid var(--dk-line); padding: 12px; margin: 8px 0; line-height: 1.7; }
 .dk-app code { font: 13px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--dk-text); background: transparent; padding: 0; }
 .dk-app .dk-examples { list-style: none; padding: 0; margin: 0; }
 .dk-app .dk-examples li { border-bottom: 1px solid var(--dk-line); padding: 12px 0; }
@@ -190,12 +183,12 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-attribution { font-size: 11px; margin-top: 14px; }
 .dk-app .dk-links { list-style: none; padding: 0; margin: 8px 0; }
 .dk-app .dk-links li { margin: 8px 0; }
-.dk-app .dk-links a { display: block; padding: 10px 12px; border: 1px solid var(--dk-line); border-radius: 8px; }
+.dk-app .dk-links a { display: block; padding: 10px 12px; border: 1px solid var(--dk-line); }
 .dk-app .dk-resource-shortcut { margin-top: 20px; border-top: 1px solid var(--dk-line); }
 .dk-app .dk-placeholder, .dk-app .dk-empty { padding: 24px; max-width: 430px; color: var(--dk-muted); }
 .dk-app .dk-placeholder h2 { font-size: 17px; }
-.dk-app .dk-detail-dialog { width: min(440px, calc(100% - 24px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: 16px; margin: auto 16px auto auto; background: var(--dk-card); color: var(--dk-text); overflow: auto; overscroll-behavior: contain; box-shadow: 0 18px 60px #0005; }
-.dk-app .dk-detail-dialog::backdrop { background: #0a14265c; }
+.dk-app .dk-detail-dialog { width: min(440px, calc(100% - 24px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--dk-line); margin: auto 16px auto auto; background: var(--dk-card); color: var(--dk-text); overflow: auto; overscroll-behavior: contain; }
+.dk-app .dk-detail-dialog::backdrop { background: #050a0780; }
 .dk-app .dk-detail-dialog .dk-detail { max-height: calc(100dvh - 32px); border: 0; }
 .dk-app.is-expanded { position: fixed; inset: 0; z-index: 10000; overflow: auto; overscroll-behavior: contain; padding: 20px 24px; background: var(--dk-bg); margin: 0; }
 .dk-app.is-expanded .dk-viewport { height: calc(100dvh - 220px); min-height: 380px; }
@@ -219,7 +212,7 @@ html[data-mode='dark'] .dk-app {
   .dk-app .dk-legend { font-size: 11px; }
 }
 @media (max-width: 600px) {
-  .dk-app .dk-detail-dialog { width: 100vw; max-width: 100vw; max-height: 88dvh; margin: auto 0 0; border-radius: 18px 18px 0 0; }
+  .dk-app .dk-detail-dialog { width: 100vw; max-width: 100vw; max-height: 88dvh; margin: auto 0 0; }
   .dk-app .dk-detail-dialog .dk-detail { max-height: 88dvh; padding-bottom: env(safe-area-inset-bottom); }
   .dk-app .dk-detail-actions button { min-height: 42px; }
   .dk-app.is-expanded { padding: 12px; }
