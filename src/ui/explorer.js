@@ -19,7 +19,7 @@ export function mount(root, config = {}) {
   const listen = (target, type, callback) => target.addEventListener(type, callback, { signal: lifetime.signal });
   root.dataset.devkitMounted = 'true';
   const defaults = (config.defaultView || root.dataset.defaultView) === 'sheet' ? 'sheet' : 'map';
-  const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', query: '', tab: 'about', zoom: 1, error: '', edge: '' };
+  const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', query: '', tab: 'about', zoom: 1, error: '', edge: '', overviewReturn: null };
   let loadRequest = 0;
   let catalogRequest;
   root.classList.add('dk-app');
@@ -65,7 +65,7 @@ export function mount(root, config = {}) {
     $('[data-clear-search]').hidden = !state.query.trim();
     $('[data-overview-actions]').hidden = !overview;
     if (state.query.trim()) renderList($('[data-list]'), state, filtered); else $('[data-list]').innerHTML = '';
-    if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, viewport.clientWidth < 700 ? 1 : 2);
+    if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, viewport.clientWidth < 700 ? 1 : 2, state.model);
     else renderMap(stage, state, filtered);
     $('[data-legend]').textContent = overview ? (viewport.clientWidth < 700 ? '위아래로 스크롤해 모든 분야를 보세요. +로 분류 펼치기 · 선은 분류 연결입니다.' : '전체 조망의 선은 분류를 뜻합니다. +로 세부 분류를 펼치고 관계도로 들어가세요.') : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 관계는 학습 순서나 출시 연대가 아닙니다. 배경을 드래그하거나 스크롤해 이동하세요.';
     $('[data-scale]').textContent = Math.round(state.zoom * 100) + '%';
@@ -111,12 +111,16 @@ export function mount(root, config = {}) {
     $('[data-scale]').textContent = Math.round(state.zoom * 100) + '%';
   }
   function goToScope(scope) {
+    if (state.category === 'all' && scope !== 'all' && !state.query.trim()) state.overviewReturn = { expanded: new Set(state.expanded), zoom: state.zoom, left: viewport.scrollLeft, top: viewport.scrollTop };
     state.category = scope; state.query = ''; searchOpen = false; $('[data-search]').value = ''; state.zoom = 1;
     setNav(false);
     const parent = state.groups.find(group => group.id === scope || group.categories.some(category => category.id === scope));
     if (parent) state.expanded.add(parent.id);
     render(); remember(); viewport.scrollTop = 0; viewport.scrollLeft = 0;
-    if (scope === 'all') fitOverview();
+    if (scope === 'all') {
+      if (state.overviewReturn) { const previous = state.overviewReturn; state.overviewReturn = null; state.expanded = previous.expanded; render(); setZoom(previous.zoom); viewport.scrollLeft = previous.left; viewport.scrollTop = previous.top; remember(); }
+      else fitOverview();
+    }
   }
   function findTool(id, tab = state.tab, keepSearch = false) {
     const tool = state.model.tools.get(id);
@@ -156,7 +160,7 @@ export function mount(root, config = {}) {
         area.querySelector(`[data-expand="${data.expand}"]`)?.focus({ preventScroll: true });
       }
     } else if (data.quick || data.searchTool) findTool(data.quick || data.searchTool, data.quick ? 'usage' : 'about', true);
-    else if (data.tool) choose(data.tool);
+    else if (data.tool) choose(data.tool, false);
     else if (data.edge) {
       const edge = state.model.edges.find(item => item.id === data.edge);
       if (edge) { state.tab = 'about'; choose(edge.to); state.edge = edge.id; renderDetail(); }
