@@ -2,13 +2,13 @@ import { escapeHtml as esc } from '../core/reference-data.js';
 
 // Domain connectors describe membership, never tool alternatives or learning order.
 // On narrow canvases use one readable column instead of shrinking every label.
-export function overviewHtml(groups, expanded, zoom = 1, columns = 2) {
+export function overviewHtml(groups, expanded, zoom = 1, columns = 2, model = null) {
   const compact = columns === 1;
   const width = compact ? 324 : 880;
   const cardWidth = compact ? 276 : 260;
   const rootX = width / 2;
   const rows = [[], []];
-  const cardHeight = group => expanded.has(group.id) ? 104 + group.categories.length * 40 : 100;
+  const cardHeight = group => expanded.has(group.id) ? 104 + group.categories.reduce((sum, category) => sum + 40 + (model ? [...group.tools].filter(id => model.tools.get(id)?.categories.includes(category.id)).length * 30 : 0), 0) : 100;
   const heights = [0, 0];
   for (const [index, group] of groups.entries()) {
     const side = compact ? 0 : index % 2;
@@ -30,7 +30,8 @@ export function overviewHtml(groups, expanded, zoom = 1, columns = 2) {
         ? `M${rootX},76 H16 V${anchorY} H${x}`
         : `M${startX},${centerY} C${(startX + anchorX) / 2},${centerY} ${(startX + anchorX) / 2},${anchorY} ${anchorX},${anchorY}`;
       connectors += `<path data-domain="${esc(group.id)}" d="${path}"/>`;
-      const categories = open ? group.categories.map((category, index) => `<g class="dk-overview-category" data-category="${esc(category.id)}" role="button" tabindex="0" aria-label="${esc(category.name)} 관계도 보기" transform="translate(12,${100 + index * 40})"><title>${esc(category.name)}</title><rect width="${cardWidth - 24}" height="36" rx="6"/><text x="12" y="23">${esc(category.name.length > 24 ? category.name.slice(0, 23) + '…' : category.name)}</text><text class="dk-category-count" x="${cardWidth - 38}" y="23" text-anchor="end">${category.count}</text></g>`).join('') : '';
+      let categoryY = 100;
+      const categories = open ? group.categories.map(category => { const ids = model ? [...group.tools].filter(id => model.tools.get(id)?.categories.includes(category.id)) : []; const offset = categoryY; categoryY += 40 + ids.length * 30; return `<g class="dk-overview-category" data-category="${esc(category.id)}" role="button" tabindex="0" aria-label="${esc(category.name)} 관계도 보기" transform="translate(12,${offset})"><title>${esc(category.name)}</title><rect width="${cardWidth - 24}" height="36" rx="6"/><text x="12" y="23">${esc(category.name.length > 24 ? category.name.slice(0, 23) + '…' : category.name)}</text><text class="dk-category-count" x="${cardWidth - 38}" y="23" text-anchor="end">${category.count}</text></g>${ids.map((id, index) => `<g class="dk-overview-category" data-tool="${esc(id)}" role="button" tabindex="0" aria-label="${esc(model.tools.get(id).name)} 상세 보기" transform="translate(24,${offset + 39 + index * 30})"><rect width="${cardWidth - 48}" height="26" rx="5"/><text x="10" y="18">${esc(model.tools.get(id).name.slice(0, 25))}</text></g>`).join('')}`; }).join('') : '';
       cards += `<g class="dk-overview-card" data-domain="${esc(group.id)}" transform="translate(${x},${y})"><rect class="dk-overview-frame" width="${cardWidth}" height="${cardHeight(group)}" rx="14"/><rect class="dk-domain-stripe" x="1" y="14" width="4" height="38" rx="2"/>
         <g class="dk-overview-toggle" data-expand="${esc(group.id)}" role="button" tabindex="0" aria-expanded="${open}" aria-label="${esc(group.name)} 세부 분류 ${open ? '접기' : '펼치기'}"><rect width="${cardWidth}" height="62" rx="14"/><text class="dk-overview-title" x="20" y="28">${esc(group.name)}</text><text class="dk-overview-sign" x="${cardWidth - 30}" y="30">${open ? '−' : '+'}</text><text class="dk-overview-meta" x="20" y="49">${group.categories.length}개 분류 · ${group.tools.size}개 도구</text></g>
         <g class="dk-overview-jump" data-category="${esc(group.id)}" role="button" tabindex="0" aria-label="${esc(group.name)} 전체 관계도 보기" transform="translate(12,64)"><rect width="${cardWidth - 24}" height="30" rx="6"/><text x="10" y="20">관계도 열기</text><text x="${cardWidth - 40}" y="20" text-anchor="end">→</text></g>${categories}</g>`;
