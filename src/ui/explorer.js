@@ -65,9 +65,9 @@ export function mount(root, config = {}) {
     $('[data-clear-search]').hidden = !state.query.trim();
     $('[data-overview-actions]').hidden = !overview;
     if (state.query.trim()) renderList($('[data-list]'), state, filtered); else $('[data-list]').innerHTML = '';
-    if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, viewport.clientWidth < 700 ? 1 : 2, state.model);
+    if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, viewport.clientWidth < 700 ? 1 : 2, state.model, state.tool);
     else renderMap(stage, state, filtered);
-    $('[data-legend]').textContent = overview ? (viewport.clientWidth < 700 ? '위아래로 스크롤해 모든 분야를 보세요. +로 분류 펼치기 · 선은 분류 연결입니다.' : '전체 조망의 선은 분류를 뜻합니다. +로 세부 분류를 펼치고 관계도로 들어가세요.') : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 관계는 학습 순서나 출시 연대가 아닙니다. 배경을 드래그하거나 스크롤해 이동하세요.';
+    $('[data-legend]').textContent = overview ? (viewport.clientWidth < 700 ? '위아래로 스크롤해 모든 분야를 보세요. +로 분류 펼치기 · 선은 분류 연결입니다.' : '전체 조망에서 분야를 펼치고 도구를 선택하세요. 도구 관계는 분류 안에서 확인할 수 있습니다.') : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 관계는 학습 순서나 출시 연대가 아닙니다. 배경을 드래그하거나 스크롤해 이동하세요.';
     $('[data-scale]').textContent = Math.round(state.zoom * 100) + '%';
     highlight();
   }
@@ -148,6 +148,10 @@ export function mount(root, config = {}) {
     if ('clearSearch' in data && state.model) { clearSearch(); $('[data-search]').focus(); return; }
     if (!state.model) return;
     if (data.category) {
+      if (state.category === 'all' && !state.query.trim()) {
+        const parent = state.groups.find(group => group.id === data.category || group.categories.some(category => category.id === data.category));
+        if (parent) { state.expanded.add(parent.id); render(); remember(); return; }
+      }
       goToScope(data.category);
       if (event.detail === 0) $('[data-categories]').querySelector(`[data-category="${data.category}"]`)?.focus();
     } else if (data.expand || 'expandAll' in data || 'collapseAll' in data) {
@@ -164,7 +168,10 @@ export function mount(root, config = {}) {
     else if (data.edge) {
       const edge = state.model.edges.find(item => item.id === data.edge);
       if (edge) { state.tab = 'about'; choose(edge.to); state.edge = edge.id; renderDetail(); }
-    } else if (data.related) findTool(data.related, 'about');
+    } else if (data.related) {
+      if (state.category === 'all' && !state.query.trim()) { const parent = state.groups.find(group => group.tools.has(data.related)); if (parent) state.expanded.add(parent.id); render(); choose(data.related, false); }
+      else findTool(data.related, 'about');
+    }
     else if (data.tab) { state.tab = data.tab; remember(); renderDetail(); if (event.detail === 0) $('[data-tab="' + data.tab + '"]').focus(); }
     else if (data.zoom) {
       if (data.zoom === 'fit') {
