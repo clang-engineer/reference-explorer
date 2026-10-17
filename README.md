@@ -4,6 +4,22 @@ A small Web Component and ES module for rendering reference catalog data as a se
 
 The package does not own data. Hosts provide either a catalog URL, a catalog object, or a prebuilt explorer model.
 
+## Local preview
+
+From the project root, start a static server (Python 3 required):
+
+```sh
+python3 -m http.server 8000
+```
+
+Open http://localhost:8000/examples/basic.html in your browser. No install or build step is required. The example loads its catalog from GitHub, so an internet connection is required.
+
+Run tests with Node.js:
+
+```sh
+npm test
+```
+
 ## Web Component
 
 ```html
