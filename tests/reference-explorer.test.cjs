@@ -75,6 +75,32 @@ test('overview category expansion survives hash restoration', async () => {
   assert.deepEqual([...readExplorerHash(hash, model, groups).expanded], ids);
 });
 
+test('category maps isolate modal SVG markers from the background map', async () => {
+  const { buildModel } = await import('../src/core/catalog.js');
+  const { renderMap } = await import('../src/ui/views.js');
+  const { explorerFilter, navigationGroups } = await import('../src/core/navigation.js');
+  const model = buildModel({ categories: [{ name: 'Text Search', commands: [{ name: 'grep' }, { name: 'ripgrep' }], relations: [{ from: 'grep', to: 'ripgrep', relation: 'alternative' }] }] });
+  const groups = navigationGroups(model);
+  const category = model.categories[0].id;
+  const state = { model, groups, category, query: '', zoom: 1 };
+  const stage = {
+    children: [],
+    ownerDocument: { createElement: () => ({ innerHTML: '', className: '' }) },
+    append(board) { this.children.push(board); },
+  };
+  const filtered = explorerFilter(model, groups, category);
+  renderMap(stage, state, filtered);
+  const background = stage.children.pop().innerHTML;
+  renderMap(stage, { ...state, markerPrefix: 'modal-1-' }, filtered);
+  const modal = stage.children.pop().innerHTML;
+  assert.ok(background.includes(`id="arrow-${category}"`));
+  assert.ok(modal.includes(`id="arrow-modal-1-${category}"`));
+  assert.ok(modal.includes(`marker-end="url(#arrow-modal-1-${category})"`));
+  assert.ok(!modal.includes(`id="arrow-${category}"`));
+  assert.ok(modal.includes('data-tool="grep"'));
+  assert.ok(modal.includes('data-tool="ripgrep"'));
+});
+
 test('public module exports mount', async () => {
   const api = await import('../src/index.js');
   assert.equal(typeof api.mount, 'function');

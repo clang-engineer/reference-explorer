@@ -144,6 +144,20 @@ html[data-mode='dark'] .dk-app {
 .dk-app .dk-overview [role='button']:hover rect, .dk-app .dk-overview [role='button']:focus-visible rect { stroke: var(--dk-domain); stroke-width: 2; }
 .dk-app .dk-overview text { pointer-events: none; }
 
+/* The map and tool detail share one modal, one screen at a time. */
+.dk-app .dk-relation-dialog { width: min(1200px, calc(100vw - 32px)); max-width: none; height: min(820px, calc(100dvh - 32px)); max-height: none; padding: 0; border: 1px solid var(--dk-line); border-radius: 16px; background: var(--dk-card); color: var(--dk-text); box-shadow: 0 18px 60px #0005; overflow: hidden; }
+.dk-app .dk-relation-dialog[open] { display: flex; flex-direction: column; }
+.dk-app .dk-relation-dialog::backdrop { background: #0a142680; }
+.dk-app .dk-relation-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--dk-line); }
+.dk-app .dk-relation-header h2 { margin: 0; font-size: 17px; }
+.dk-app .dk-relation-workspace { display: grid; grid-template-columns: minmax(0, 1fr); flex: 1; min-height: 0; }
+.dk-app .dk-relation-viewport { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; background: var(--dk-bg); }
+.dk-app .dk-relation-dialog .dk-detail { min-height: 0; max-height: none; border: 0; border-radius: 0; }
+.dk-app .dk-relation-dialog .dk-legend { flex: none; margin: 0; padding: 8px 16px; border-top: 1px solid var(--dk-line); }
+@media (max-width: 720px) {
+  .dk-app .dk-relation-dialog { width: calc(100vw - 16px); height: calc(100dvh - 16px); border-radius: 12px; }
+}
+
 /* One inspector DOM, docked on wide screens or promoted into a native dialog. */
 .dk-app .dk-panel-host { min-width: 0; }
 .dk-app .dk-detail { border: 1px solid var(--dk-line); border-radius: 14px; background: var(--dk-card); max-height: 740px; overflow: auto; scrollbar-width: thin; }

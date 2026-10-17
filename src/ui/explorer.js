@@ -5,6 +5,7 @@ import { overviewHtml } from '../graph/overview.js';
 import { shellHtml, renderNavigation, renderMap, renderList } from './views.js';
 import { createDetailPanel } from './details.js';
 import { createInspector } from './inspector.js';
+import { createRelationDialog } from './relation-dialog.js';
 
 const instances = new WeakMap();
 
@@ -28,6 +29,7 @@ export function mount(root, config = {}) {
   const viewport = $('[data-viewport]'), stage = $('[data-stage]'), panel = $('[data-detail]');
   const details = createDetailPanel(panel, { fetchImpl, clipboard: window.navigator?.clipboard });
   const inspector = createInspector(root, panel, { onClose: closeDetail, signal: lifetime.signal });
+  const relationDialog = createRelationDialog(root, { fetchImpl, clipboard: window.navigator?.clipboard });
   let searchOpen = false;
   let navOpen = false;
   root.dataset.detailOpen = 'false';
@@ -74,7 +76,7 @@ export function mount(root, config = {}) {
   function highlight() {
     const neighbors = new Set([state.tool]);
     for (const edge of state.model.edges) if (edge.from === state.tool || edge.to === state.tool) { neighbors.add(edge.from); neighbors.add(edge.to); }
-    root.querySelectorAll('[data-tool]').forEach(node => {
+    stage.querySelectorAll('[data-tool]').forEach(node => {
       node.classList.toggle('is-selected', node.dataset.tool === state.tool);
       node.classList.toggle('is-related', !!state.tool && node.dataset.tool !== state.tool && neighbors.has(node.dataset.tool));
       node.setAttribute('aria-pressed', String(node.dataset.tool === state.tool));
@@ -147,7 +149,7 @@ export function mount(root, config = {}) {
     if ('closeDetail' in data && state.model) { closeDetail(); return; }
     if ('clearSearch' in data && state.model) { clearSearch(); $('[data-search]').focus(); return; }
     if (!state.model) return;
-    if (data.openMap) { goToScope(data.openMap); return; }
+    if (data.openMap) { relationDialog.open(data.openMap, state.model, state.groups, element); return; }
     if (data.category) {
       if (state.category === 'all' && !state.query.trim()) {
         const parent = state.groups.find(group => group.id === data.category || group.categories.some(category => category.id === data.category));
@@ -258,7 +260,7 @@ export function mount(root, config = {}) {
     if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey &&
         !event.target.matches?.('input, textarea, select, [contenteditable="true"]') && !$('[data-detail-dialog]').open) {
       event.preventDefault(); $('[data-search]').focus();
-    } else if (event.key === 'Escape' && !$('[data-detail-dialog]').open) {
+    } else if (event.key === 'Escape' && !relationDialog.isOpen && !$('[data-detail-dialog]').open) {
       if (state.tool) closeDetail();
       else if (navOpen) setNav(false);
       else if (workspace) toggleWorkspace();
@@ -304,6 +306,7 @@ export function mount(root, config = {}) {
       ++loadRequest;
       catalogRequest?.abort();
       lifetime.abort();
+      relationDialog.destroy();
       details.destroy();
       inspector.destroy();
       root.classList.remove('is-expanded');

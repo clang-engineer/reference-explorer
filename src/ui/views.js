@@ -57,6 +57,7 @@ export function renderMap(stage, state, filtered) {
     if (!ids.length) continue;
     const edges = filtered.edges.filter(edge => edge.category === category.id);
     const layout = layoutCategory(ids, edges);
+    const markerId = `arrow-${state.markerPrefix || ''}${category.id}`;
     const edgeHtml = edges.map(edge => {
       const from = layout.positions.get(edge.from), to = layout.positions.get(edge.to);
       if (!from || !to) return '';
@@ -65,7 +66,7 @@ export function renderMap(stage, state, filtered) {
       const path = x2 > x1 ? `M${x1},${y1} C${x1 + bend},${y1} ${x2 - bend},${y2} ${x2},${y2}`
         : `M${from.x + 84},${from.y} C${from.x + 84},${from.y - 22} ${to.x + 84},${to.y - 22} ${to.x + 84},${to.y}`;
       const label = `${state.model.tools.get(edge.from).name} → ${state.model.tools.get(edge.to).name}: ${RELATIONS[edge.relation] || edge.relation || '관계'}`;
-      return `<g class="dk-edge${['complement', 'wrapper'].includes(edge.relation) ? ' is-complement' : ''}" data-edge="${edge.id}" role="button" tabindex="0" aria-label="${esc(label)}"><title>${esc(label)}</title><path class="dk-edge-hit" d="${path}"/><path class="dk-edge-line" d="${path}" marker-end="url(#arrow-${category.id})"/></g>`;
+      return `<g class="dk-edge${['complement', 'wrapper'].includes(edge.relation) ? ' is-complement' : ''}" data-edge="${edge.id}" role="button" tabindex="0" aria-label="${esc(label)}"><title>${esc(label)}</title><path class="dk-edge-hit" d="${path}"/><path class="dk-edge-line" d="${path}" marker-end="url(#${markerId})"/></g>`;
     }).join('');
     const nodes = ids.map(id => {
       const tool = state.model.tools.get(id), pos = layout.positions.get(id);
@@ -74,7 +75,7 @@ export function renderMap(stage, state, filtered) {
     }).join('');
     const board = document.createElement('section');
     board.className = 'dk-board';
-    board.innerHTML = `<h3>${esc(category.name)} <small>${ids.length}</small></h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width * state.zoom}" height="${layout.height * state.zoom}" data-width="${layout.width}" data-height="${layout.height}" role="group" aria-label="${esc(category.name)} 관계 지도"><defs><marker id="arrow-${category.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>${edgeHtml}${nodes}</svg>`;
+    board.innerHTML = `<h3>${esc(category.name)} <small>${ids.length}</small></h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width * state.zoom}" height="${layout.height * state.zoom}" data-width="${layout.width}" data-height="${layout.height}" role="group" aria-label="${esc(category.name)} 관계 지도"><defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>${edgeHtml}${nodes}</svg>`;
     stage.append(board);
   }
   if (!stage.children.length) stage.innerHTML = '<p class="dk-empty">검색 결과가 없습니다. 검색어 또는 분야를 바꿔보세요.</p>';
