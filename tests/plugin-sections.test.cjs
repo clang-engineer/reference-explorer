@@ -30,7 +30,7 @@ test('expanded Neovim sections preserve every plugin and fit labeled nodes insid
   assert.ok(html.includes('주석 토글'));
 });
 
-test('purpose cards deduplicate overlapping tools and merge host children across source categories', async () => {
+test('purpose hierarchy retains merged memberships while restored cards retain source sections', async () => {
   const {buildModel} = await import('../src/core/catalog.js');
   const {classifyExplorerModel} = await import('../src/core/classification.js');
   const {navigationGroups} = await import('../src/core/navigation.js');
@@ -40,9 +40,9 @@ test('purpose cards deduplicate overlapping tools and merge host children across
   const model=classifyExplorerModel(buildModel({categories:[cat('File Operations',['bat']),cat('Text Search',['bat','grep']),cat('Editors',['neovim']),cat('Neovim Plugins · 編集',['mini.comment'])]}));
   const groups=navigationGroups(model);
   const html=overviewHtml(groups,new Set(),1,2,model);
-  assert.equal([...html.matchAll(/data-tool="bat"/g)].length,1);
+  assert.equal([...html.matchAll(/data-tool="bat"/g)].length,2);
   assert.ok(!html.includes('data-tool="mini.comment"'));
-  const open=overviewHtml(groups,new Set(),1,2,model,'',new Set(['neovim']));
+  const open=overviewHtml(groups,new Set(['role:editor']),1,2,model,'',new Set(['neovim']));
   assert.ok(open.includes('data-tool="mini.comment"'));
   const group=groups.find(g=>g.id==='domain:editor');
   assert.equal(purposeHierarchy(model,group,new Set()).hierarchy.hiddenCount,1);

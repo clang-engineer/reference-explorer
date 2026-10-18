@@ -182,7 +182,10 @@ export function mount(root, config = {}) {
       goToScope(data.category);
       if (event.detail === 0) $('[data-categories]').querySelector(`[data-category="${data.category}"]`)?.focus();
     } else if (data.expand || 'expandAll' in data || 'collapseAll' in data) {
-      if ('expandAll' in data) state.expandedHosts = new Set([...state.model.tools.values()].flatMap(tool => Object.values(tool.hostsByCategory || {}).flat()));
+      if ('expandAll' in data) {
+        state.expanded = new Set(state.groups.flatMap(group => group.categories.map(category => category.id)));
+        state.expandedHosts = new Set([...state.model.tools.values()].flatMap(tool => Object.values(tool.hostsByCategory || {}).flat()));
+      }
       else if ('collapseAll' in data) { state.expanded.clear(); state.expandedHosts.clear(); }
       else {
         const group = state.groups.find(group => group.id === data.expand);

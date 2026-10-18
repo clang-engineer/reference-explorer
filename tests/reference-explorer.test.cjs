@@ -29,7 +29,7 @@ test('devkit adapter builds an explorer model from catalog data', async () => {
   assert.ok(model.tools.get('ripgrep').custom.some(link => link.url === 'https://example.com/rg'));
 });
 
-test('purpose cards expose all base tools without source subcategory controls', async () => {
+test('purpose cards restore subcategory headings and per-category expansion', async () => {
   const { buildModel } = await import('../src/core/catalog.js');
   const { navigationGroups } = await import('../src/core/navigation.js');
   const { overviewHtml } = await import('../src/graph/overview.js');
@@ -42,12 +42,12 @@ test('purpose cards expose all base tools without source subcategory controls', 
   const closed = overviewHtml(groups, new Set(), 1, 2, model);
   assert.ok(closed.includes('data-tool="chezmoi"'));
   assert.ok(closed.includes('data-tool="grep"'));
-  assert.ok(closed.includes('data-tool="skim"'));
-  assert.ok(!closed.includes('Text Search'));
-  assert.ok(!closed.includes('data-expand='));
+  assert.ok(!closed.includes('data-tool="skim"'));
+  assert.ok(closed.includes('Text Search'));
+  assert.ok(closed.includes('data-expand='));
   const open = overviewHtml(groups, new Set([category]), 1, 2, model);
   assert.ok(open.includes('data-tool="skim"'));
-  assert.ok(open.includes(`data-open-map="${groups[0].id}"`));
+  assert.ok(open.includes(`data-open-map="${category}"`));
   assert.ok(!open.includes('<svg'));
 });
 
