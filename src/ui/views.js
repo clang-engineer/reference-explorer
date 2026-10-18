@@ -53,7 +53,7 @@ export function renderNavigation($, state) {
 
 export function renderTagFilters(target, model, categoryId, selected = '') {
   const category = model.categories.find(category => category.id === categoryId);
-  target.hidden = !category?.tags?.length;
+  target.hidden = categoryId === 'role:editor' || !category?.tags?.length;
   if (target.hidden) { target.innerHTML = ''; return; }
   const tools = [...model.tools.values()].filter(tool => tool.categories.includes(categoryId));
   const options = [{ id: '', name: '전체', count: tools.length }, ...category.tags.map(tag => ({
