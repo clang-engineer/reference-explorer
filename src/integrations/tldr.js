@@ -9,7 +9,6 @@ export function parseTldr(text) {
     if (line.startsWith('- ')) description = line.slice(2).trim();
     const match = /^\s*`([^`]+)`\s*$/.exec(line);
     if (match) { examples.push({ description, command: match[1] }); description = ''; }
-    if (examples.length === 6) break;
   }
   return examples;
 }

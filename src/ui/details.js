@@ -68,7 +68,7 @@ export function createDetailPanel(panel, { fetchImpl = globalThis.fetch, clipboa
         return;
       }
       target.innerHTML = result.examples.length ? `<ol class="dk-examples">${result.examples.map((example, index) => `<li><p>${esc(example.description)}</p><pre><code>${esc(example.command)}</code></pre><button type="button" data-copy="${index}">명령 복사</button></li>`).join('')}</ol><p class="dk-muted">{{…}} 자리표시자는 실제 값으로 바꿔 사용하세요.</p>` : '<p class="dk-muted">표시할 tldr 예시가 없습니다.</p>';
-      target.innerHTML += `<p class="dk-attribution">${linkHtml({ label: 'tldr-pages 원문 · 기여자', url: 'https://github.com/tldr-pages/tldr/blob/main/pages/' + result.path + '.md' })} · ${linkHtml({ label: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' })}<br>최대 6개 예시를 발췌해 표시합니다.</p>`;
+      target.innerHTML += `<p class="dk-attribution">${linkHtml({ label: 'tldr-pages 원문 · 기여자', url: 'https://github.com/tldr-pages/tldr/blob/main/pages/' + result.path + '.md' })} · ${linkHtml({ label: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' })}</p>`;
     } catch {
       if (sequence !== version || controller.signal.aborted || !target.isConnected) return;
       target.innerHTML = '<p class="dk-muted">네트워크 오류로 tldr를 불러오지 못했습니다.</p><button type="button" data-tldr-retry>tldr 다시 시도</button>';

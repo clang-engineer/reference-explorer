@@ -80,7 +80,28 @@ export function classifyExplorerModel(model) {
     const mapped = sources.get(edge.category);
     return mapped ? { ...edge, category: mapped.category, sourceCategory: edge.category, tag: mapped.tag } : edge;
   });
-  return { ...model, categories, tools, edges };
+  // Guides remain source records in the public model, but are resources in the UI.
+  const guideTargets = {
+    'terminal-tui': ['lazygit', 'lazydocker', 'yazi', 'harlequin', 'rainfrog'],
+    shell: ['bash', 'zsh', 'fish', 'nushell', 'powershell'],
+    'database-tui': ['harlequin', 'rainfrog', 'vim-dadbod-ui'],
+    'python-pypi-publishing': ['python', 'uv'],
+    'tools-dictionary': ['curl', 'docker', 'nginx', 'systemctl', 'systemd'],
+  };
+  const guides = [...tools.values()].filter(tool => tool.kind === 'guide');
+  for (const guide of guides) {
+    for (const id of guideTargets[guide.id] || []) {
+      const tool = tools.get(id);
+      if (!tool || tool.kind === 'guide') continue;
+      tool.links = [...tool.links];
+      for (const link of guide.custom) {
+        if (!tool.links.some(item => item.url === link.url)) tool.links.push({ ...link });
+      }
+    }
+    tools.delete(guide.id);
+  }
+  const visibleCategories = categories.filter(category => [...tools.values()].some(tool => tool.categories.includes(category.id)));
+  return { ...model, categories: visibleCategories, tools, edges: edges.filter(edge => tools.has(edge.from) && tools.has(edge.to)), guides };
 }
 
 export function categoryTag(model, categoryId, requested) {

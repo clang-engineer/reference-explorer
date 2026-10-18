@@ -113,3 +113,18 @@ test('standalone configuration tools retain their records and appear in purpose 
   assert.ok(navigationGroups(model).find(group => group.id === 'domain:environment').tools.has('chezmoi'));
   for (const tool of model.tools.values()) assert.ok(navigationGroups(model).some(group => group.tools.has(tool.id)));
 });
+
+test('guide documents become linked resources without inflating explorer counts or changing source records', async () => {
+  const { buildModel } = await import('../src/core/catalog.js');
+  const { classifyExplorerModel } = await import('../src/core/classification.js');
+  const { navigationGroups } = await import('../src/core/navigation.js');
+  const source = buildModel({ tool_map: { categories: [{ name: 'Database', commands: [{ name: 'harlequin' }], relations: [] }] }, cheatsheets: { groups: [], guides: [{ slug: 'database-tui', name: 'Database TUI', kind: 'guide', custom: { label: 'DB guide', url: 'https://example.com/database-tui' } }] } });
+  const model = classifyExplorerModel(source);
+  assert.equal(model.tools.size, 1);
+  assert.ok(!model.tools.has('database-tui'));
+  assert.ok(!navigationGroups(model).some(group => group.id === 'domain:reference'));
+  assert.ok(model.tools.get('harlequin').links.some(link => link.url === 'https://example.com/database-tui'));
+  assert.equal(source.tools.size, 2);
+  assert.equal(source.tools.get('harlequin').links.length, 0);
+  assert.equal(model.guides.length, 1);
+});
