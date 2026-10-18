@@ -83,21 +83,16 @@ test('legacy category names, IDs and expanded IDs restore merged roles and match
   assert.equal(readExplorerHash('#scope=Shell&tag=invalid', model, groups).tag, '');
 });
 
-test('tag selectors show unique tool counts, reset to all, escape labels, and hide outside merged roles', async () => {
+test('all role views omit redundant source-category selectors', async () => {
   const { classifyExplorerModel } = await import('../src/core/classification.js');
   const { renderTagFilters } = await import('../src/ui/views.js');
   const model = classifyExplorerModel(await fixture());
-  const target = { innerHTML: '', hidden: true };
-  renderTagFilters(target, model, 'role:database', 'neovim');
-  assert.equal(target.hidden, false);
-  assert.ok(target.innerHTML.includes('data-category-tag="" aria-pressed="false">전체 <small>3</small>'));
-  assert.ok(target.innerHTML.includes('data-category-tag="neovim" aria-pressed="true"'));
-  model.categories.find(category => category.id === 'role:database').tags[0].name = '<unsafe>';
-  renderTagFilters(target, model, 'role:database');
-  assert.ok(target.innerHTML.includes('&lt;unsafe&gt;'));
-  renderTagFilters(target, model, 'all');
-  assert.equal(target.hidden, true);
-  assert.equal(target.innerHTML, '');
+  for (const scope of ['role:editor', 'role:shell', 'role:database', 'all']) {
+    const target = { innerHTML: 'old controls', hidden: false };
+    renderTagFilters(target, model, scope);
+    assert.equal(target.hidden, true);
+    assert.equal(target.innerHTML, '');
+  }
 });
 
 test('standalone configuration tools retain their records and appear in purpose navigation without fake relations', async () => {

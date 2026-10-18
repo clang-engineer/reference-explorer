@@ -46,3 +46,16 @@ export function toolHierarchy(model, categoryId, visible, expandedHosts = new Se
   const hiddenCount = [...groups].reduce((count, [host, tools]) => count + (expandedHosts.has(host) ? 0 : tools.length), 0);
   return { ids, groups, owners, hiddenCount, sections };
 }
+
+// A purpose card unifies category memberships without inventing relationships.
+export function purposeHierarchy(model, group, expandedHosts = new Set()) {
+  const categories = new Set(group.categories.map(category => category.id));
+  const tools = new Map([...model.tools].map(([id, tool]) => {
+    const member = tool.categories.filter(category => categories.has(category));
+    return [id, { ...tool,
+      categoryTags: { ...tool.categoryTags, [group.id]: [...new Set(member.flatMap(category => tool.categoryTags?.[category] || []))] },
+      hostsByCategory: { ...tool.hostsByCategory, [group.id]: [...new Set(member.flatMap(category => tool.hostsByCategory?.[category] || []))] },
+    }];
+  }));
+  return { model: { ...model, tools }, hierarchy: toolHierarchy({ ...model, tools }, group.id, group.tools, expandedHosts) };
+}

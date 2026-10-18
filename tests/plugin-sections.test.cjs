@@ -29,3 +29,22 @@ test('expanded Neovim sections preserve every plugin and fit labeled nodes insid
   assert.ok(html.includes('dk-purpose-plugin-heading"> 탐색'.replace('> ', '>')));
   assert.ok(html.includes('주석 토글'));
 });
+
+test('purpose cards deduplicate overlapping tools and merge host children across source categories', async () => {
+  const {buildModel} = await import('../src/core/catalog.js');
+  const {classifyExplorerModel} = await import('../src/core/classification.js');
+  const {navigationGroups} = await import('../src/core/navigation.js');
+  const {overviewHtml} = await import('../src/graph/overview.js');
+  const {purposeHierarchy} = await import('../src/core/extensions.js');
+  const cat=(name,names)=>({name,commands:names.map(name=>({name})),relations:[]});
+  const model=classifyExplorerModel(buildModel({categories:[cat('File Operations',['bat']),cat('Text Search',['bat','grep']),cat('Editors',['neovim']),cat('Neovim Plugins · 編集',['mini.comment'])]}));
+  const groups=navigationGroups(model);
+  const html=overviewHtml(groups,new Set(),1,2,model);
+  assert.equal([...html.matchAll(/data-tool="bat"/g)].length,1);
+  assert.ok(!html.includes('data-tool="mini.comment"'));
+  const open=overviewHtml(groups,new Set(),1,2,model,'',new Set(['neovim']));
+  assert.ok(open.includes('data-tool="mini.comment"'));
+  const group=groups.find(g=>g.id==='domain:editor');
+  assert.equal(purposeHierarchy(model,group,new Set()).hierarchy.hiddenCount,1);
+  assert.equal(purposeHierarchy(model,group,new Set(['neovim'])).hierarchy.hiddenCount,0);
+});

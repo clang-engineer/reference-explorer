@@ -5,14 +5,14 @@ import { tagHostExpansion } from './extensions.js';
 // Navigation groups reference existing categories; they never replace their data.
 // Mixed/new categories go to References instead of silently disappearing.
 const GROUPS = [
-  ['files', '파일·검색·텍스트', ['File Operations', 'Text Search', 'Text Processing', 'Navigation', 'Compression']],
+  ['files', '파일·검색·텍스트', ['File Operations', 'Text Search', 'Text Processing', 'Navigation', 'Compression', 'Command History', 'CLI 기록·탐색']],
   ['terminal', '터미널·셸 환경', ['Terminal Multiplexer', 'Terminal Applications', 'tmux Plugins', 'Shell', 'Shell Frameworks', 'Shell Prompt', '셸']],
   ['editor', '코드·문서 편집', ['Terminal Editors', 'Editors', 'Editor Configurations', '에디터 & TUI']],
   ['operations', '시스템·네트워크 운영', ['Log Monitoring', 'System Monitoring', 'Network', 'HTTP', 'Benchmarking', '시스템 & 서버']],
-  ['database', '데이터베이스', ['Database', '데이터']],
+  ['database', '데이터 저장·검색', ['Database', '데이터']],
   ['vcs', '버전 관리', ['Git', '버전 관리', 'Git & 버전 관리']],
-  ['environment', '설정·작업 환경', ['Window Managers', 'macOS', 'Configuration Management', 'Command History', 'CLI 기록·탐색', 'Task Management']],
-  ['development', '개발·실행·배포', ['Development', 'Programming Languages', 'Containers', '개발 도구', '보안 & 비밀정보']],
+  ['environment', '설정·창·작업 관리', ['Window Managers', 'macOS', 'Configuration Management', 'Task Management']],
+  ['development', '개발·실행·보안', ['Development', 'Programming Languages', 'Containers', '개발 도구', '보안 & 비밀정보', 'Runtime Management', 'Secret Management']],
   ['reference', '기타 도구', []],
 ];
 export function navigationGroups(model) {

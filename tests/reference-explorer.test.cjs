@@ -29,7 +29,7 @@ test('devkit adapter builds an explorer model from catalog data', async () => {
   assert.ok(model.tools.get('ripgrep').custom.some(link => link.url === 'https://example.com/rg'));
 });
 
-test('purpose cards preview isolated tools and expand each category without leaving the overview', async () => {
+test('purpose cards expose all base tools without source subcategory controls', async () => {
   const { buildModel } = await import('../src/core/catalog.js');
   const { navigationGroups } = await import('../src/core/navigation.js');
   const { overviewHtml } = await import('../src/graph/overview.js');
@@ -42,11 +42,12 @@ test('purpose cards preview isolated tools and expand each category without leav
   const closed = overviewHtml(groups, new Set(), 1, 2, model);
   assert.ok(closed.includes('data-tool="chezmoi"'));
   assert.ok(closed.includes('data-tool="grep"'));
-  assert.ok(!closed.includes('data-tool="skim"'));
-  assert.ok(closed.includes('2개 더 보기'));
+  assert.ok(closed.includes('data-tool="skim"'));
+  assert.ok(!closed.includes('Text Search'));
+  assert.ok(!closed.includes('data-expand='));
   const open = overviewHtml(groups, new Set([category]), 1, 2, model);
   assert.ok(open.includes('data-tool="skim"'));
-  assert.ok(open.includes(`data-open-map="${category}"`));
+  assert.ok(open.includes(`data-open-map="${groups[0].id}"`));
   assert.ok(!open.includes('<svg'));
 });
 
@@ -112,7 +113,7 @@ test('plugin, history and database categories have explicit navigation domains',
   const { navigationGroups } = await import('../src/core/navigation.js');
   const source = { categories: ['Command History', 'Neovim Plugins · DB', 'tmux Plugins', 'Database', 'Editors'].map((name, index) => ({ name, commands: [{ name: 'item-' + index, description: 'Introduction' }], relations: [] })) };
   const groups = navigationGroups(buildModel(source));
-  assert.equal(groups.find(group => group.id === 'domain:environment').categories[0].name, 'Command History');
+  assert.equal(groups.find(group => group.id === 'domain:files').categories[0].name, 'Command History');
   assert.equal(groups.find(group => group.id === 'domain:editor').categories.length, 2);
   assert.ok(groups.find(group => group.id === 'domain:database'));
   assert.ok(groups.find(group => group.id === 'domain:terminal'));

@@ -66,7 +66,7 @@ export function mount(root, config = {}) {
     root.dataset.currentView = 'explorer';
     renderNavigation($, state);
     renderTagFilters($('[data-category-tags]'), state.model, state.query.trim() ? 'all' : state.category, state.tag);
-    $('[data-status]').textContent = state.error || (overview ? `${state.model.tools.size}개 도구 · 용도별로 도구를 찾고 분류를 펼쳐보세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
+    $('[data-status]').textContent = state.error || (overview ? `${state.model.tools.size}개 항목 · 용도별로 찾고 호스트의 하위 항목을 펼쳐보세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
     $('[data-retry]').hidden = !state.error;
     $('[data-results]').hidden = !state.query.trim() || !searchOpen;
     $('[data-clear-search]').hidden = !state.query.trim();
@@ -179,15 +179,11 @@ export function mount(root, config = {}) {
       return;
     }
     if (data.category) {
-      if (state.category === 'all' && !state.query.trim() && state.groups.some(group => group.id === data.category)) {
-        const parent = state.groups.find(group => group.id === data.category);
-        if (parent) { state.expanded.add(parent.id); render(); remember(); return; }
-      }
       goToScope(data.category);
       if (event.detail === 0) $('[data-categories]').querySelector(`[data-category="${data.category}"]`)?.focus();
     } else if (data.expand || 'expandAll' in data || 'collapseAll' in data) {
-      if ('expandAll' in data) state.expanded = new Set(state.groups.flatMap(group => group.categories.map(category => category.id)));
-      else if ('collapseAll' in data) state.expanded.clear();
+      if ('expandAll' in data) state.expandedHosts = new Set([...state.model.tools.values()].flatMap(tool => Object.values(tool.hostsByCategory || {}).flat()));
+      else if ('collapseAll' in data) { state.expanded.clear(); state.expandedHosts.clear(); }
       else {
         const group = state.groups.find(group => group.id === data.expand);
         const ids = group ? [group.id, ...group.categories.map(category => category.id)] : [data.expand];
@@ -302,6 +298,7 @@ export function mount(root, config = {}) {
   function restore() {
     state.overviewReturn = null;
     Object.assign(state, readExplorerHash(location.hash, state.model, state.groups, defaults));
+    state.tag = ''; // Legacy tags reveal hosts, but cannot leave an invisible active filter.
     $('[data-search]').value = state.query; searchOpen = false; render(); if (state.tool) choose(state.tool, false); else { inspector.hide({ focus: false }); renderDetail(); } centerSelected(); fitOverview();
   }
   listen(window, 'resize', () => { if (state.model && state.category === 'all' && !state.query.trim()) { render(); fitOverview(); } });

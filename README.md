@@ -63,9 +63,10 @@ The main explorer restores host expansion through the optional `hosts` hash para
 ## Purpose-based overview
 
 The overview uses responsive purpose cards instead of a category-overlap graph.
-Cards preview tools even when they have no relationships. Expand a category to
-see all its tools, expand a host to see its plugins, or open its relationship
-map in a dialog. Existing `overview=macro` links now open the tool overview.
+Cards show all base tools once per purpose, including tools without relationships.
+Expand a host to see its plugins or subcommands, or open a purpose relationship
+map in a dialog. Source subcategories remain inside relationship maps; sidebar
+navigation lists only purposes. Expand/collapse-all controls operate on host children. Existing `overview=macro` links now open the tool overview.
 
 Navigation groups describe tasks: files/search/text, terminal/shell, editing,
 system/network operations, databases, version control, environment management,

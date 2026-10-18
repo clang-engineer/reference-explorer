@@ -147,7 +147,7 @@ export function createRelationDialog(root, { fetchImpl, clipboard }) {
       state.model = model; state.groups = groups; state.category = category;
       state.zoom = 1; state.tool = ''; state.edge = ''; state.tab = 'about'; state.tag = ''; state.expandedHosts = new Set();
       showMap();
-      $('[data-map-title]').textContent = `${model.categories.find(item => item.id === category)?.name || '분류'} 관계도`;
+      $('[data-map-title]').textContent = `${groups.find(item => item.id === category)?.name || model.categories.find(item => item.id === category)?.name || '분류'} 관계도`;
       trigger = opener;
       dialog.showModal();
       renderMap(stage, state, explorerFilter(model, groups, category, '', state.tag));

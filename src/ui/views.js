@@ -31,7 +31,7 @@ export const shellHtml = `
   <div class="dk-layout">
     <aside class="dk-sidebar" aria-label="도구 분야"><button type="button" class="dk-nav-toggle" data-toggle-nav aria-expanded="false">분야 선택 <span aria-hidden="true">⌄</span></button><nav class="dk-navigation" data-categories aria-label="전체와 세부 분류"></nav></aside>
     <section class="dk-explorer" aria-label="도구 탐색">
-      <div class="dk-map-header"><nav class="dk-breadcrumb" data-breadcrumb aria-label="지도 위치"></nav><div class="dk-maptools" data-maptools><span data-overview-actions><button type="button" data-expand-all>분류 모두 펼치기</button><button type="button" data-collapse-all>모두 접기</button></span><div>
+      <div class="dk-map-header"><nav class="dk-breadcrumb" data-breadcrumb aria-label="지도 위치"></nav><div class="dk-maptools" data-maptools><span data-overview-actions><button type="button" data-expand-all>하위 항목 모두 펼치기</button><button type="button" data-collapse-all>하위 항목 모두 접기</button></span><div>
         <button type="button" data-zoom="out" aria-label="지도 축소">−</button><output data-scale>100%</output><button type="button" data-zoom="in" aria-label="지도 확대">+</button><button type="button" data-zoom="fit">맞춤</button><button type="button" data-zoom="reset" aria-label="지도 배율 초기화">1:1</button></div></div></div>
       <div class="dk-tag-filters" data-category-tags role="group" aria-label="세부 분류 필터" hidden></div>
       <div class="dk-viewport" data-viewport tabindex="0" aria-label="도구 지도. 드래그 또는 방향키로 이동하고 Tab으로 도구를 선택합니다."><div class="dk-stage" data-stage></div></div>
@@ -43,23 +43,15 @@ export const shellHtml = `
 
 export function renderNavigation($, state) {
   const active = state.groups.find(group => group.id === state.category || group.categories.some(category => category.id === state.category));
-  $('[data-categories]').innerHTML = `<button type="button" class="dk-nav-all" data-category="all" aria-pressed="${state.category === 'all' && !state.query}">전체 조망 <small>${state.model.tools.size}</small></button>` + state.groups.map(group => {
-    const open = state.expanded.has(group.id);
-    return `<section class="dk-nav-group"><div class="dk-nav-heading"><button type="button" data-category="${group.id}" aria-pressed="${group.id === state.category}"><span>${group.name}</span><small>${group.tools.size}</small></button><button type="button" data-expand="${group.id}" aria-expanded="${open}" aria-label="${group.name} 세부 분류 ${open ? '접기' : '펼치기'}">${open ? '−' : '+'}</button></div><div class="dk-nav-children"${open ? '' : ' hidden'}>${group.categories.map(category => `<button type="button" data-category="${esc(category.id)}" aria-pressed="${category.id === state.category}">${esc(category.name)}<small>${category.count}</small></button>`).join('')}</div></section>`;
-  }).join('');
+  $('[data-categories]').innerHTML = `<button type="button" class="dk-nav-all" data-category="all" aria-pressed="${state.category === 'all' && !state.query}">전체 탐색 <small>${state.model.tools.size}</small></button>` + state.groups.map(group => `<section class="dk-nav-group"><div class="dk-nav-heading"><button type="button" data-category="${esc(group.id)}" aria-pressed="${group.id === state.category}"><span>${esc(group.name)}</span><small>${group.tools.size}</small></button></div></section>`).join('');
   const category = state.model.categories.find(category => category.id === state.category);
   $('[data-breadcrumb]').innerHTML = `<button type="button" data-category="all">전체 조망</button>` + (state.query ? '<span> / 전체 검색 결과</span>' : active ? `<span> / </span><button type="button" data-category="${active.id}">${active.name}</button>${category ? `<span> / ${esc(category.name)}</span>` : ''}` : '<span> / 분야별 탐색</span>');
 }
 
 export function renderTagFilters(target, model, categoryId, selected = '') {
-  const category = model.categories.find(category => category.id === categoryId);
-  target.hidden = categoryId === 'role:editor' || !category?.tags?.length;
-  if (target.hidden) { target.innerHTML = ''; return; }
-  const tools = [...model.tools.values()].filter(tool => tool.categories.includes(categoryId));
-  const options = [{ id: '', name: '전체', count: tools.length }, ...category.tags.map(tag => ({
-    ...tag, count: tools.filter(tool => tool.categoryTags?.[categoryId]?.includes(tag.id)).length,
-  }))];
-  target.innerHTML = options.map(tag => `<button type="button" data-category-tag="${esc(tag.id)}" aria-pressed="${selected === tag.id}">${esc(tag.name)} <small>${tag.count}</small></button>`).join('');
+  // Host expansion and labeled sections replace overlapping source-category filters.
+  target.hidden = true;
+  target.innerHTML = '';
 }
 
 export function renderMap(stage, state, filtered) {

@@ -62,7 +62,9 @@ export function classifyExplorerModel(model) {
   }));
   // Standalone tools belong to their task, not to the catalog's document shelf.
   const purposeOverrides = [
-    ['purpose:configuration', 'Configuration Management', ['chezmoi', 'mise', 'sops']],
+    ['purpose:configuration', 'Configuration Management', ['chezmoi']],
+    ['purpose:runtime', 'Runtime Management', ['mise']],
+    ['purpose:secrets', 'Secret Management', ['sops']],
     ['purpose:productivity', 'Task Management', ['taskwarrior']],
   ];
   for (const [id, name, ids] of purposeOverrides) {
@@ -75,6 +77,12 @@ export function classifyExplorerModel(model) {
       tool.categories = [...tool.categories.filter(category => connected.has(category)), id];
       tool.search += ' ' + name.toLowerCase();
     }
+  }
+  for (const id of ['c', 'rust', 'zig']) if (tools.has(id)) tools.get(id).kind = 'language';
+  for (const id of ['git-log', 'git-diff']) {
+    const tool = tools.get(id);
+    if (!tool || !tools.has('git')) continue;
+    for (const category of tool.categories) tool.hostsByCategory[category] = ['git'];
   }
   const edges = model.edges.map(edge => {
     const mapped = sources.get(edge.category);
