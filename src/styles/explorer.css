@@ -294,3 +294,9 @@ html[data-mode='light'] .dk-app {
 @container devkit (max-width: 600px) {
   .dk-app .dk-purpose-grid { grid-template-columns: 1fr; }
 }
+
+.dk-app .dk-purpose-plugin-heading { flex-basis: 100%; font-size: 11px; color: var(--dk-muted); padding: 8px 0 2px; border-top: 1px dotted var(--dk-line); }
+.dk-app .dk-purpose-role { display: block; margin: 2px 0 0; font-size: 10px; }
+.dk-app .dk-plugin-section rect { fill: none; stroke: var(--dk-line); stroke-dasharray: 3 4; }
+.dk-app .dk-plugin-section text, .dk-app .dk-plugin-role { fill: var(--dk-muted); font-size: 10px; pointer-events: none; }
+.dk-app .dk-edge.is-muted { opacity: .18; }

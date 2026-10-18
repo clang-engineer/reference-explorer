@@ -40,6 +40,7 @@ export function createRelationDialog(root, { fetchImpl, clipboard }) {
     stage.querySelectorAll('[data-edge]').forEach(node => {
       const edge = state.model.edges.find(edge => edge.id === node.dataset.edge);
       node.classList.toggle('is-selected', edge?.from === state.tool || edge?.to === state.tool);
+      node.classList.toggle('is-muted', !!state.tool && edge?.from !== state.tool && edge?.to !== state.tool);
     });
   }
   function showMap() {

@@ -1,3 +1,4 @@
+import { pluginSection } from './plugin-labels.js';
 // Explicit host metadata only. Do not infer dependencies from alternative/complement edges.
 export function sourceExtensionHosts(toolId, categoryName) {
   if (categoryName.startsWith('Neovim Plugins · ')) return ['neovim'];
@@ -28,8 +29,20 @@ export function toolHierarchy(model, categoryId, visible, expandedHosts = new Se
     if (!groups.has(host)) groups.set(host, []);
     groups.get(host).push(id);
   }
+  const sections = new Map();
+  for (const [host, children] of groups) {
+    if (host !== 'neovim') continue;
+    const buckets = new Map();
+    for (const id of children) {
+      const name = pluginSection(model.tools.get(id), categoryId);
+      if (!buckets.has(name)) buckets.set(name, []);
+      buckets.get(name).push(id);
+    }
+    sections.set(host, [...buckets].map(([name, ids]) => ({ name, ids })));
+    groups.set(host, [...buckets.values()].flat());
+  }
   const base = new Set([...visible].map(id => owners.get(id) || id));
   const ids = [...base].flatMap(id => [id, ...(expandedHosts.has(id) ? groups.get(id) || [] : [])]);
   const hiddenCount = [...groups].reduce((count, [host, tools]) => count + (expandedHosts.has(host) ? 0 : tools.length), 0);
-  return { ids, groups, owners, hiddenCount };
+  return { ids, groups, owners, hiddenCount, sections };
 }
