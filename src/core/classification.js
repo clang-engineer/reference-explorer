@@ -60,6 +60,22 @@ export function classifyExplorerModel(model) {
     tool.search = [source.search || '', ...tool.categories.map(id => categories.find(category => category.id === id)?.name || '')].join(' ').toLowerCase();
     return [id, tool];
   }));
+  // Standalone tools belong to their task, not to the catalog's document shelf.
+  const purposeOverrides = [
+    ['purpose:configuration', 'Configuration Management', ['chezmoi', 'mise', 'sops']],
+    ['purpose:productivity', 'Task Management', ['taskwarrior']],
+  ];
+  for (const [id, name, ids] of purposeOverrides) {
+    const members = ids.filter(id => tools.has(id));
+    if (!members.length) continue;
+    categories.push({ id, name, why: '', aliases: [] });
+    for (const toolId of members) {
+      const tool = tools.get(toolId);
+      const connected = new Set(model.edges.filter(edge => edge.from === toolId || edge.to === toolId).map(edge => sources.get(edge.category)?.category || edge.category));
+      tool.categories = [...tool.categories.filter(category => connected.has(category)), id];
+      tool.search += ' ' + name.toLowerCase();
+    }
+  }
   const edges = model.edges.map(edge => {
     const mapped = sources.get(edge.category);
     return mapped ? { ...edge, category: mapped.category, sourceCategory: edge.category, tag: mapped.tag } : edge;

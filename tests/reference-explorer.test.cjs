@@ -29,40 +29,25 @@ test('devkit adapter builds an explorer model from catalog data', async () => {
   assert.ok(model.tools.get('ripgrep').custom.some(link => link.url === 'https://example.com/rg'));
 });
 
-test('overview expands domains and categories independently without a separate expand button', async () => {
+test('purpose cards preview isolated tools and expand each category without leaving the overview', async () => {
   const { buildModel } = await import('../src/core/catalog.js');
   const { navigationGroups } = await import('../src/core/navigation.js');
   const { overviewHtml } = await import('../src/graph/overview.js');
   const model = buildModel({ categories: [
-    { name: 'Text Search', commands: [{ name: 'grep' }], relations: [] },
-    { name: 'File Operations', commands: [{ name: 'cp' }], relations: [] },
-    { name: 'Editors', commands: [{ name: 'vim' }], relations: [] },
+    { name: 'Text Search', commands: ['grep', 'rg', 'ag', 'ack', 'fzf', 'skim'].map(name => ({name})), relations: [] },
+    { name: 'Configuration Management', commands: [{name: 'chezmoi'}], relations: [] },
   ] });
   const groups = navigationGroups(model);
-  const cli = groups.find(group => group.name === 'CLI');
-  const search = cli.categories.find(category => category.name === 'Text Search');
-  const expanded = new Set();
-  const render = () => overviewHtml(groups, expanded, 1, 2, model);
-  assert.ok(!render().includes(`data-expand="${search.id}"`));
-  expanded.add(cli.id);
-  assert.ok(render().includes(`data-expand="${search.id}" role="button" tabindex="0" aria-expanded="false"`));
-  assert.ok(!render().includes('data-tool='));
-  expanded.add(search.id);
-  const html = render();
-  assert.ok(html.includes(`data-expand="${search.id}" role="button" tabindex="0" aria-expanded="true"`));
-  assert.ok(html.includes('data-tool="grep"'));
-  assert.ok(!html.includes('data-tool="cp"'));
-  assert.ok(!html.includes('data-tool="vim"'));
-  assert.ok(!html.includes('dk-overview-jump'));
-  assert.ok(html.includes(`data-open-map="${search.id}" role="button" tabindex="0" aria-label="Text Search 관계도 보기"`));
-  assert.ok(html.includes('<title>Text Search 관계도 보기</title>'));
-  assert.ok(html.includes('text-anchor="middle">↗</text>'));
-  assert.ok(!html.includes('관계도 →'));
-  expanded.delete(search.id);
-  assert.ok(!render().includes('data-tool='));
-  expanded.add(search.id);
-  expanded.delete(cli.id);
-  assert.ok(!render().includes('data-tool='));
+  const category = groups[0].categories[0].id;
+  const closed = overviewHtml(groups, new Set(), 1, 2, model);
+  assert.ok(closed.includes('data-tool="chezmoi"'));
+  assert.ok(closed.includes('data-tool="grep"'));
+  assert.ok(!closed.includes('data-tool="skim"'));
+  assert.ok(closed.includes('2개 더 보기'));
+  const open = overviewHtml(groups, new Set([category]), 1, 2, model);
+  assert.ok(open.includes('data-tool="skim"'));
+  assert.ok(open.includes(`data-open-map="${category}"`));
+  assert.ok(!open.includes('<svg'));
 });
 
 test('overview category expansion survives hash restoration', async () => {
@@ -127,11 +112,11 @@ test('plugin, history and database categories have explicit navigation domains',
   const { navigationGroups } = await import('../src/core/navigation.js');
   const source = { categories: ['Command History', 'Neovim Plugins · DB', 'tmux Plugins', 'Database', 'Editors'].map((name, index) => ({ name, commands: [{ name: 'item-' + index, description: 'Introduction' }], relations: [] })) };
   const groups = navigationGroups(buildModel(source));
-  assert.equal(groups.find(group => group.name === 'CLI').categories[0].name, 'Command History');
-  assert.equal(groups.find(group => group.name === 'Plugins').categories.length, 2);
-  assert.ok(groups.find(group => group.name === 'Database'));
-  assert.ok(groups.find(group => group.name === 'Editor'));
-  assert.ok(!groups.find(group => group.name === 'References'));
+  assert.equal(groups.find(group => group.id === 'domain:environment').categories[0].name, 'Command History');
+  assert.equal(groups.find(group => group.id === 'domain:editor').categories.length, 2);
+  assert.ok(groups.find(group => group.id === 'domain:database'));
+  assert.ok(groups.find(group => group.id === 'domain:terminal'));
+  assert.ok(!groups.find(group => group.id === 'domain:reference'));
 });
 test('category references reuse introduction and guides remain distinct records', async () => {
   const { buildModel } = await import('../src/core/catalog.js');

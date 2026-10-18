@@ -90,7 +90,7 @@ test('macro hash is additive, preserves scope and expanded state, and rejects un
   const groups = navigationGroups(model);
   const hash = '#' + new URLSearchParams({ scope: 'all', overview: 'macro', open: `${groups[0].id},map-0` });
   const state = readExplorerHash(hash, model, groups);
-  assert.equal(state.overviewMode, 'macro');
+  assert.equal(state.overviewMode, 'explore');
   assert.equal(state.category, 'all');
   assert.ok(state.expanded.has('map-0'));
   assert.equal(readExplorerHash('#overview=unknown', model, groups).overviewMode, 'explore');

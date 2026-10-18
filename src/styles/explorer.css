@@ -264,3 +264,33 @@ html[data-mode='light'] .dk-app {
 @media (prefers-reduced-motion: no-preference) {
   .dk-app .dk-node rect, .dk-app button { transition: background-color .12s, stroke .12s, border-color .12s; }
 }
+
+/* Follow the host's automatic mode as well as its explicit light/dark choice. */
+@media (prefers-color-scheme: light) {
+  html:not([data-mode]) .dk-app {
+    --dk-bg: #f4f7f4; --dk-card: #fff; --dk-text: #202e24;
+    --dk-muted: #526858; --dk-line: #c5d2c8; --dk-accent: #28613a;
+    --dk-tint: #e2eee5; --dk-edge: #718e79; --dk-domain: #567b60;
+    --dk-root: #233c2a; --dk-on-root: #e3f3e7; --dk-root-hint: #bdd6c3;
+    color-scheme: light;
+  }
+}
+.dk-app .dk-stage.is-cards { width: 100%; align-items: stretch; }
+.dk-app .dk-purpose-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 14px; align-items: start; width: 100%; }
+.dk-app .dk-purpose-card { min-width: 0; background: var(--dk-bg); border: 1px solid var(--dk-line); padding: 14px; }
+.dk-app .dk-purpose-card > header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.dk-app .dk-purpose-card h3 { font-size: 15px; margin: 0; }
+.dk-app .dk-purpose-card small { white-space: nowrap; }
+.dk-app .dk-purpose-category { border-top: 1px solid var(--dk-line); padding: 9px 0; }
+.dk-app .dk-purpose-label { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 7px; }
+.dk-app .dk-purpose-label > button:first-child { text-align: left; flex: 1; border: 0; background: transparent; font-size: 12px; padding: 3px 0; }
+.dk-app .dk-purpose-label > button:last-child { padding: 2px 8px; }
+.dk-app .dk-purpose-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.dk-app .dk-purpose-tool { display: inline-flex; min-width: 0; max-width: 100%; }
+.dk-app .dk-purpose-tool button { overflow-wrap: anywhere; text-align: left; padding: 5px 8px; font-size: 12px; }
+.dk-app .dk-purpose-tool.is-selected > button:first-child { background: var(--dk-tint); border-color: var(--dk-accent); }
+.dk-app .dk-purpose-extension { border-left: 2px dotted var(--dk-domain); padding-left: 5px; }
+.dk-app .dk-purpose-more { margin-top: 8px; color: var(--dk-accent); font-size: 12px; }
+@container devkit (max-width: 600px) {
+  .dk-app .dk-purpose-grid { grid-template-columns: 1fr; }
+}

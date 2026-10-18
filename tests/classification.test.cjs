@@ -72,8 +72,8 @@ test('legacy category names, IDs and expanded IDs restore merged roles and match
     assert.equal(state.category, 'role:shell');
     assert.equal(state.tag, 'frameworks');
     assert.ok(state.expanded.has('role:shell'));
-    assert.ok(state.expanded.has('domain:shell'));
-    assert.equal(state.overviewMode, 'macro');
+    assert.ok(state.expanded.has('domain:terminal'));
+    assert.equal(state.overviewMode, 'explore');
   }
   const legacy = readExplorerHash('#category=map-9', model, groups);
   assert.equal(legacy.category, 'role:database');
@@ -98,4 +98,18 @@ test('tag selectors show unique tool counts, reset to all, escape labels, and hi
   renderTagFilters(target, model, 'all');
   assert.equal(target.hidden, true);
   assert.equal(target.innerHTML, '');
+});
+
+test('standalone configuration tools retain their records and appear in purpose navigation without fake relations', async () => {
+  const { buildModel } = await import('../src/core/catalog.js');
+  const { classifyExplorerModel } = await import('../src/core/classification.js');
+  const { navigationGroups } = await import('../src/core/navigation.js');
+  const source = buildModel({ categories: [{ name: 'Git & 버전 관리', commands: [{ name: 'git' }, { name: 'chezmoi', description: 'Manage dotfiles' }], relations: [] }] });
+  const model = classifyExplorerModel(source);
+  assert.deepEqual(model.tools.get('chezmoi').categories, ['purpose:configuration']);
+  assert.equal(model.tools.get('chezmoi').description, 'Manage dotfiles');
+  assert.equal(model.edges.length, 0);
+  assert.equal(source.tools.get('chezmoi').categories[0], 'map-0');
+  assert.ok(navigationGroups(model).find(group => group.id === 'domain:environment').tools.has('chezmoi'));
+  for (const tool of model.tools.values()) assert.ok(navigationGroups(model).some(group => group.tools.has(tool.id)));
 });

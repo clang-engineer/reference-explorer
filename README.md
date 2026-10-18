@@ -60,11 +60,21 @@ Known plugins and configurations are folded under their host (Neovim, tmux, Zsh,
 
 The main explorer restores host expansion through the optional `hosts` hash parameter; each relationship modal keeps its own temporary expansion state. No source catalog membership or relationship is added when a host is shown as context for a plugin category.
 
-## Overview modes
+## Purpose-based overview
 
-Switch between **도구 탐색** (tool explorer) and **분류 관계도** (category overview) in the overview toolbar. The category overview connects categories that share tools; line weight reflects the number of shared tools, not alternative/complement relationships or learning order. Each category shows its tool count and internal relation count. Open **공통 도구 보기** to inspect shared tools, or select a category to open its detailed relationship map.
+The overview uses responsive purpose cards instead of a category-overlap graph.
+Cards preview tools even when they have no relationships. Expand a category to
+see all its tools, expand a host to see its plugins, or open its relationship
+map in a dialog. Existing `overview=macro` links now open the tool overview.
 
-The catalog remains unchanged. `#scope=all&overview=macro` links directly to the category overview; existing links keep the tool explorer as their default.
+Navigation groups describe tasks: files/search/text, terminal/shell, editing,
+system/network operations, databases, version control, environment management,
+and development/deployment. Standalone configuration tools such as chezmoi are
+shown under environment management instead of inheriting a document-shelf label.
+The source catalog and public model API remain unchanged.
+
+The terminal palette follows explicit `html[data-mode]` choices and the system
+color scheme when the host has no explicit mode, including live mode changes.
 
 ## Devkit adapter
 
