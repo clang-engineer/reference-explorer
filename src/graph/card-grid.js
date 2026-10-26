@@ -1,7 +1,7 @@
 // Card width is an input to graph layout, never an output of SVG dimensions.
 export function cardGrid(availableWidth, count, { minWidth = 360, maxWidth = 480, gap = 16 } = {}) {
   const available = Math.max(170, availableWidth);
-  const columns = Math.max(1, Math.min(count || 1, Math.floor((available + gap) / (minWidth + gap))));
+  const columns = Math.max(1, Math.min(3, count || 1, Math.floor((available + gap) / (minWidth + gap))));
   const width = Math.min(maxWidth, (available - gap * (columns - 1)) / columns);
   return { columns, width, graphWidth: width - 2 };
 }

@@ -12,6 +12,9 @@ test('card widths are bounded before layout; available space determines column c
   assert.equal(cardGrid(650, 5).columns, 1);
   assert.equal(cardGrid(900, 5).columns, 2);
   assert.equal(cardGrid(2400, 1).columns, 1);
+  assert.equal(cardGrid(1111, 8).columns, 2);
+  assert.equal(cardGrid(1112, 8).columns, 3);
+  assert.equal(cardGrid(3840, 8).columns, 3);
 });
 
 test('long relation graphs flow down inside card width without shrinking nodes', async () => {
