@@ -8,6 +8,7 @@ import { shellHtml, renderNavigation, renderMap, renderList, renderTagFilters } 
 import { createDetailPanel } from './details.js';
 import { createInspector } from './inspector.js';
 import { createRelationDialog } from './relation-dialog.js';
+import { watchMapWidth } from '../graph/card-grid.js';
 
 const instances = new WeakMap();
 
@@ -22,7 +23,7 @@ export function mount(root, config = {}) {
   const listen = (target, type, callback) => target.addEventListener(type, callback, { signal: lifetime.signal });
   root.dataset.devkitMounted = 'true';
   const defaults = (config.defaultView || root.dataset.defaultView) === 'sheet' ? 'sheet' : 'map';
-  const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', tag: '', query: '', tab: 'about', zoom: 1, error: '', edge: '', overviewMode: 'explore', expandedHosts: new Set(), overviewReturn: null };
+  const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', tag: '', query: '', tab: 'about', zoom: 1, error: '', edge: '', overviewMode: 'explore', expandedHosts: new Set(), overviewReturn: null, nodePositions: new Map() };
   let loadRequest = 0;
   let catalogRequest;
   root.classList.add('dk-app');
@@ -31,7 +32,8 @@ export function mount(root, config = {}) {
   const viewport = $('[data-viewport]'), stage = $('[data-stage]'), panel = $('[data-detail]');
   const details = createDetailPanel(panel, { fetchImpl, clipboard: window.navigator?.clipboard });
   const inspector = createInspector(root, panel, { onClose: closeDetail, signal: lifetime.signal });
-  const relationDialog = createRelationDialog(root, { fetchImpl, clipboard: window.navigator?.clipboard });
+  const relationDialog = createRelationDialog(root, { fetchImpl, clipboard: window.navigator?.clipboard, nodePositions: state.nodePositions });
+  watchMapWidth(stage, () => { if (state.model) render(); }, lifetime.signal);
   let searchOpen = false;
   let navOpen = false;
   root.dataset.detailOpen = 'false';
@@ -74,9 +76,10 @@ export function mount(root, config = {}) {
 
     if (state.query.trim()) renderList($('[data-list]'), state, filtered); else $('[data-list]').innerHTML = '';
     stage.classList.toggle('is-cards', overview);
+    stage.classList.toggle('is-relation-grid', !overview);
     if (overview) stage.innerHTML = overviewHtml(state.groups, state.expanded, state.zoom, 2, state.model, state.tool, state.expandedHosts);
     else renderMap(stage, state, filtered);
-    $('[data-legend]').textContent = overview ? '용도별 카드에서 도구 선택 · +로 더 보기 · ↗로 관계도 열기' : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 배경을 드래그하거나 스크롤해 이동하세요.';
+    $('[data-legend]').textContent = overview ? '용도별 카드에서 도구 선택 · +로 더 보기 · ↗로 관계도 열기' : '실선: 대안·대체·특화 / 점선: 보완·래퍼. 노드를 드래그해 배치 · 배경 드래그 또는 스크롤로 이동';
     $('[data-maptools] > div').hidden = overview;
     $('[data-scale]').textContent = Math.round(state.zoom * 100) + '%';
     highlight();

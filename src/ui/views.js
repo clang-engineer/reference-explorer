@@ -5,6 +5,9 @@ import { RELATIONS } from '../core/catalog.js';
 import { toolHierarchy } from '../core/extensions.js';
 import { layoutToolHierarchy } from '../graph/tool-hierarchy.js';
 import { routeConnections } from '../graph/routing.js';
+import { applyManualPositions } from '../graph/manual-layout.js';
+import { cardGrid } from '../graph/card-grid.js';
+import { enableNodeDragging, registerDraggableBoard } from './node-drag.js';
 
 function shortLabel(value, limit) {
   let text = '', units = 0;
@@ -56,17 +59,29 @@ export function renderTagFilters(target, model, categoryId, selected = '') {
 
 export function renderMap(stage, state, filtered) {
   const document = stage.ownerDocument;
+  state.nodePositions ??= new Map();
+  enableNodeDragging(stage);
   stage.innerHTML = '';
-  for (const category of state.model.categories) {
-    const group = state.groups.find(group => group.id === state.category);
-    if (!state.query.trim() && state.category !== 'all' && (group ? !group.categories.some(item => item.id === category.id) : category.id !== state.category)) continue;
+  const group = state.groups.find(group => group.id === state.category);
+  const categories = state.model.categories.filter(category => {
+    if (!state.query.trim() && state.category !== 'all' && (group ? !group.categories.some(item => item.id === category.id) : category.id !== state.category)) return false;
+    return [...filtered.visible].some(id => state.model.tools.get(id).categories.includes(category.id));
+  });
+  const computed = document.defaultView?.getComputedStyle?.(stage);
+  const padding = computed ? parseFloat(computed.paddingLeft) + parseFloat(computed.paddingRight) : 32;
+  const grid = cardGrid((stage.parentElement?.clientWidth || 992) - padding, categories.length);
+  stage.classList?.add('is-relation-grid');
+  stage.style?.setProperty('--dk-grid-columns', grid.columns);
+  stage.style?.setProperty('--dk-grid-card-width', `${grid.width}px`);
+  for (const category of categories) {
     const ids = [...filtered.visible].filter(id => state.model.tools.get(id).categories.includes(category.id));
-    if (!ids.length) continue;
     const hierarchy = state.query.trim() ? { ids, groups: new Map(), owners: new Map(), hiddenCount: 0 }
       : toolHierarchy(state.model, category.id, new Set(ids), state.expandedHosts);
     const visible = new Set(hierarchy.ids);
     const edges = filtered.edges.filter(edge => edge.category === category.id && visible.has(edge.from) && visible.has(edge.to));
-    const layout = layoutToolHierarchy(hierarchy, edges, Math.max(168, (stage.parentElement?.clientWidth || 992) - 32));
+    const automatic = layoutToolHierarchy(hierarchy, edges, grid.graphWidth);
+    automatic.cardWidth = grid.graphWidth;
+    const layout = applyManualPositions(automatic, category.id, state.nodePositions);
     const markerId = `arrow-${state.markerPrefix || ''}${category.id}`;
     const routes = routeConnections(layout, edges);
     const edgeHtml = edges.map((edge, index) => {
@@ -90,6 +105,8 @@ export function renderMap(stage, state, filtered) {
     const board = document.createElement('section');
     board.className = 'dk-board';
     board.innerHTML = `<h3>${esc(category.name)} <small>${ids.length}개${hierarchy.hiddenCount ? ` · 확장 ${hierarchy.hiddenCount}개 접힘` : ''}</small></h3><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${layout.width} ${layout.height}" width="${layout.width * state.zoom}" height="${layout.height * state.zoom}" data-width="${layout.width}" data-height="${layout.height}" role="group" aria-label="${esc(category.name)} 관계 지도"><defs><marker id="${markerId}" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker></defs>${frames}${sections}${edgeHtml}${nodes}</svg>`;
+    registerDraggableBoard(board, { layout, category: category.id, positions: state.nodePositions,
+      redraw: () => renderMap(stage, state, filtered) });
     stage.append(board);
   }
   if (!stage.children.length) stage.innerHTML = '<p class="dk-empty">검색 결과가 없습니다. 검색어 또는 분야를 바꿔보세요.</p>';

@@ -3,11 +3,12 @@ import { renderMap, renderTagFilters } from './views.js';
 import { categoryTag } from '../core/classification.js';
 import { tagHostExpansion } from '../core/extensions.js';
 import { createDetailPanel } from './details.js';
+import { watchMapWidth } from '../graph/card-grid.js';
 
 let nextId = 0;
 
 // Owns the temporary map and its inline detail, independently of the background explorer.
-export function createRelationDialog(root, { fetchImpl, clipboard }) {
+export function createRelationDialog(root, { fetchImpl, clipboard, nodePositions = new Map() }) {
   const document = root.ownerDocument;
   const window = document.defaultView;
   const lifetime = new window.AbortController();
@@ -21,14 +22,20 @@ export function createRelationDialog(root, { fetchImpl, clipboard }) {
     <div class="dk-tag-filters" data-map-tags role="group" aria-label="관계도 세부 분류 필터" hidden></div>
     <div class="dk-relation-workspace"><div class="dk-relation-viewport" data-map-viewport tabindex="0" aria-label="관계도. 스크롤하여 이동하세요."><div class="dk-stage" data-map-stage></div></div>
     <section class="dk-detail" data-map-detail aria-label="관계도에서 선택한 도구 상세" hidden></section></div>
-    <p class="dk-legend" data-map-legend>실선: 대안·대체·특화 / 점선: 보완·래퍼. 도구나 선을 선택하면 상세로 전환합니다.</p>`;
+    <p class="dk-legend" data-map-legend>실선: 대안·대체·특화 / 점선: 보완·래퍼. 노드를 드래그해 배치 · 클릭하면 상세 보기 · 새로고침하면 배치 초기화</p>`;
   root.append(dialog);
   const $ = selector => dialog.querySelector(selector);
   const stage = $('[data-map-stage]');
   const viewport = $('[data-map-viewport]');
   const panel = $('[data-map-detail]');
   const details = createDetailPanel(panel, { fetchImpl, clipboard });
-  const state = { model: null, groups: [], category: '', tag: '', expandedHosts: new Set(), query: '', zoom: 1, tool: '', tab: 'about', edge: '', markerPrefix: `modal-${++nextId}-` };
+  const state = { model: null, groups: [], category: '', tag: '', expandedHosts: new Set(), query: '', zoom: 1, tool: '', tab: 'about', edge: '', markerPrefix: `modal-${++nextId}-`, nodePositions };
+  watchMapWidth(stage, () => {
+    if (dialog.open && state.model && !viewport.hidden) {
+      renderMap(stage, state, explorerFilter(state.model, state.groups, state.category, '', state.tag));
+      highlight();
+    }
+  }, lifetime.signal);
   let previousOverflow;
   let trigger;
 

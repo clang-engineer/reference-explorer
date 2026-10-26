@@ -99,6 +99,9 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-viewport.is-dragging { cursor: grabbing; user-select: none; }
 .dk-app .dk-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px; width: max-content; min-width: 100%; }
 .dk-app .dk-board { width: max-content; border: 1px solid var(--dk-line); background: var(--dk-card); overflow: hidden; }
+.dk-app .dk-stage.is-relation-grid { display: grid; grid-template-columns: repeat(var(--dk-grid-columns, 1), minmax(0, var(--dk-grid-card-width, 480px))); grid-auto-rows: 1fr; align-items: stretch; width: 100%; min-width: 0; box-sizing: border-box; }
+.dk-app .is-relation-grid > .dk-board { width: 100%; min-width: 0; box-sizing: border-box; overflow: auto; }
+.dk-app .is-relation-grid > .dk-board > h3 { overflow-wrap: anywhere; }
 .dk-app .dk-board h3 { font-size: 12px; padding: 8px 12px; margin: 0; border-bottom: 1px solid var(--dk-line); }
 .dk-app svg { display: block; max-width: none; overflow: visible; font-family: inherit; }
 .dk-app svg rect { rx: 0; ry: 0; }
@@ -111,6 +114,8 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-extension-child rect { stroke: var(--dk-line); }
 .dk-app .dk-extension-child text { font-size: 11px; }
 .dk-app .dk-node { cursor: pointer; }
+.dk-app .dk-node { cursor: grab; touch-action: none; }
+.dk-app .dk-stage.is-node-dragging, .dk-app .dk-stage.is-node-dragging .dk-node { cursor: grabbing; user-select: none; }
 .dk-app .dk-node rect { fill: var(--dk-card); stroke: var(--dk-edge); stroke-width: 1.2; }
 .dk-app .dk-node text { fill: var(--dk-text); pointer-events: none; }
 .dk-app .dk-context-host rect { stroke-dasharray: 3 2; }
