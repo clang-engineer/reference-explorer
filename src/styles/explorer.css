@@ -1,6 +1,10 @@
 /* Shared explorer. Host layout stays outside this stylesheet. */
+reference-explorer { display: block; width: 100%; }
 .dk-app {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 16px;
+  align-content: start;
   --dk-bg: #101412;
   --dk-card: #151b17;
   --dk-text: #d3dfd6;
@@ -45,7 +49,7 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
 /* One global search, always in reach. Results do not move the canvas. */
-.dk-app .dk-heading { display: flex; align-items: center; gap: 20px; padding: 6px 0 20px; }
+.dk-app .dk-heading { display: flex; align-items: center; gap: 20px; padding: 6px 0 20px; min-width: 0; }
 .dk-app .dk-brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; }
 .dk-app .dk-brand-icon { display: grid; place-items: center; width: 34px; height: 34px; color: var(--dk-accent); background: var(--dk-tint); border: 1px solid var(--dk-line); font-size: 22px; }
 .dk-app .dk-eyebrow { color: var(--dk-muted); font-size: 11px; letter-spacing: .12em; font-weight: 650; margin: 0 0 3px; }
@@ -65,11 +69,11 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-tool-row strong { display: block; font-size: 15px; }
 .dk-app .dk-tool-row span { display: block; font-size: 12px; color: var(--dk-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dk-app [data-quick] { color: var(--dk-accent); background: var(--dk-tint); font-size: 12px; white-space: nowrap; }
-.dk-app .dk-statusbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; min-height: 24px; }
+.dk-app .dk-statusbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; align-self: center; margin: 0; padding-bottom: 14px; max-width: 18rem; min-height: 24px; }
 .dk-app .dk-statusbar p { font-size: 12px; color: var(--dk-muted); margin: 0; }
 
 /* No empty inspector column. The graph gets the available width. */
-.dk-app .dk-layout { display: grid; grid-template-columns: 208px minmax(0,1fr); gap: 14px; align-items: start; }
+.dk-app .dk-layout { display: grid; grid-column: 1 / -1; grid-template-columns: 208px minmax(0,1fr); gap: 14px; align-items: start; }
 .dk-app[data-detail-open='true'] .dk-layout { grid-template-columns: 190px minmax(0,1fr) 320px; }
 .dk-app .dk-sidebar { min-width: 0; background: var(--dk-card); border: 1px solid var(--dk-line); padding: 10px; }
 .dk-app .dk-nav-toggle { display: none; }
@@ -129,7 +133,10 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-edge-halo { fill: none; stroke: var(--dk-card); stroke-width: 5; pointer-events: none; }
 .dk-app .dk-edge-line { fill: none; stroke: var(--dk-edge); stroke-width: 1.6; pointer-events: none; }
 .dk-app marker path { fill: var(--dk-edge); }
-.dk-app .dk-edge.is-complement .dk-edge-line { stroke-dasharray: 5 4; }
+.dk-app .dk-edge.is-complement .dk-edge-line,
+.dk-app .dk-edge.is-wrapper .dk-edge-line { stroke-dasharray: 6 5; }
+.dk-app .dk-edge.is-alternative .dk-edge-line,
+.dk-app .dk-edge.is-specialized .dk-edge-line { stroke-dasharray: none; }
 .dk-app .dk-edge.is-selected .dk-edge-line, .dk-app .dk-edge:hover .dk-edge-line, .dk-app .dk-edge:focus-visible .dk-edge-line { stroke: var(--dk-accent); stroke-width: 2.6; }
 .dk-app .dk-legend { font-size: 11px; color: var(--dk-muted); padding: 10px 14px; margin: 0; border-top: 1px solid var(--dk-line); }
 
@@ -242,6 +249,23 @@ html[data-mode='light'] .dk-app {
 .dk-app.is-expanded { position: fixed; inset: 0; z-index: 10000; overflow: auto; overscroll-behavior: contain; padding: 20px 24px; background: var(--dk-bg); margin: 0; }
 .dk-app.is-expanded .dk-viewport { height: calc(100dvh - 220px); min-height: 380px; }
 
+/* Desktop panes scroll internally; the host page itself remains scrollable. */
+@container devkit (min-width: 1001px) {
+  .dk-app .dk-layout { height: max(20rem, calc(100dvh - 18rem)); align-items: stretch; }
+  .dk-app.is-expanded .dk-layout { height: max(20rem, calc(100dvh - 12rem)); }
+  .dk-app .dk-sidebar,
+  .dk-app .dk-explorer,
+  .dk-app .dk-panel-host { display: flex; flex-direction: column; min-height: 0; }
+  .dk-app .dk-navigation,
+  .dk-app .dk-viewport,
+  .dk-app.is-expanded .dk-viewport,
+  .dk-app .dk-panel-host > .dk-detail { flex: 1 1 auto; min-height: 0; height: auto; max-height: none; overflow: auto; }
+  .dk-app .dk-map-header { flex-shrink: 0; }
+}
+@media (max-width: 768px) {
+  .dk-app { grid-template-columns: minmax(0, 1fr); }
+  .dk-app .dk-statusbar { max-width: none; padding-bottom: 8px; }
+}
 @container devkit (max-width: 1000px) {
   .dk-app .dk-heading { flex-wrap: wrap; gap: 12px; padding-bottom: 12px; }
   .dk-app .dk-brand { flex: 1; }
@@ -256,7 +280,9 @@ html[data-mode='light'] .dk-app {
   .dk-app .dk-map-header { padding: 6px 10px; }
   .dk-app .dk-maptools { width: 100%; justify-content: space-between; gap: 6px; }
   .dk-app .dk-maptools button { min-height: 36px; }
-  .dk-app .dk-viewport { height: 480px; }
+  .dk-app:not(.is-expanded) .dk-viewport { height: auto; min-height: 0; }
+  .dk-app:not(.is-expanded) .dk-navigation,
+  .dk-app:not(.is-expanded) .dk-panel-host > .dk-detail { max-height: none; }
   .dk-app .dk-stage { padding: 12px; }
   .dk-app .dk-legend { font-size: 11px; }
 }
