@@ -29,7 +29,6 @@ export const shellHtml = `
     </div>
     <button type="button" data-fullscreen aria-label="탐색 화면 넓게 보기">넓게 보기 ⛶</button>
   </header>
-  <div class="dk-statusbar"><p data-status role="status">Devkit 데이터를 불러오는 중…</p><button type="button" data-retry hidden>다시 시도</button></div>
   <p class="dk-sr" data-announcement role="status"></p>
   <div class="dk-layout">
     <aside class="dk-sidebar" aria-label="도구 분야"><button type="button" class="dk-nav-toggle" data-toggle-nav aria-expanded="false">분야 선택 <span aria-hidden="true">⌄</span></button><nav class="dk-navigation" data-categories aria-label="전체와 세부 분류"></nav></aside>
@@ -42,6 +41,7 @@ export const shellHtml = `
     </section>
     <aside class="dk-panel-host" data-panel-host hidden><section class="dk-detail" data-detail aria-label="선택한 도구 상세"></section></aside>
   </div>
+  <div class="dk-statusbar"><p data-status role="status">Devkit 데이터를 불러오는 중…</p><button type="button" data-retry hidden>다시 시도</button></div>
   <dialog class="dk-detail-dialog" data-detail-dialog aria-label="선택한 도구 상세"></dialog>`;
 
 export function renderNavigation($, state) {

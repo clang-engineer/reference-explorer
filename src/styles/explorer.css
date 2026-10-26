@@ -2,7 +2,7 @@
 reference-explorer { display: block; width: 100%; }
 .dk-app {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   column-gap: 16px;
   align-content: start;
   --dk-bg: #101412;
@@ -69,7 +69,7 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-tool-row strong { display: block; font-size: 15px; }
 .dk-app .dk-tool-row span { display: block; font-size: 12px; color: var(--dk-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dk-app [data-quick] { color: var(--dk-accent); background: var(--dk-tint); font-size: 12px; white-space: nowrap; }
-.dk-app .dk-statusbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; align-self: center; margin: 0; padding-bottom: 14px; max-width: 18rem; min-height: 24px; }
+.dk-app .dk-statusbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; grid-column: 1 / -1; margin: 0; padding-top: 8px; border-top: 1px solid var(--dk-line); min-height: 24px; }
 .dk-app .dk-statusbar p { font-size: 12px; color: var(--dk-muted); margin: 0; }
 
 /* No empty inspector column. The graph gets the available width. */
@@ -264,7 +264,6 @@ html[data-mode='light'] .dk-app {
 }
 @media (max-width: 768px) {
   .dk-app { grid-template-columns: minmax(0, 1fr); }
-  .dk-app .dk-statusbar { max-width: none; padding-bottom: 8px; }
 }
 @container devkit (max-width: 1000px) {
   .dk-app .dk-heading { flex-wrap: wrap; gap: 12px; padding-bottom: 12px; }
