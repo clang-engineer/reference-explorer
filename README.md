@@ -52,11 +52,15 @@ The default style is terminal-inspired: dark green, monospace typography, and sq
 
 ## Explorer classification
 
-The explorer combines shell categories into **Shell**, editors/configurations/Neovim plugins into **Editors**, database tools/Neovim DB plugins into **Database**, and tmux plugins into **Terminal Multiplexer**. Original categories remain selectable filter tags; the devkit catalog and public model-building API are unchanged.
+The catalog owns classification. `tool_map.domains` defines navigation groups; each category declares its stable `id`, `domain`, optional `aliases` and `tags`. The component does not merge or reclassify categories by name. Generic catalogs without taxonomy metadata remain visible in a fallback group.
 
-Tags filter both tools and relations registered in the corresponding original categories. **전체** clears the tag filter, and search remains global. Existing category names and IDs in links resolve to their merged category and matching tag.
+Commands may declare `tool_id` independently of their executable/display name. `hosts`, `section` and `tags` describe a command's membership in its category; `kind`, `role` and `platforms` describe the tool. Cheatsheet records join the same tool via `tool_id` or `slug`. Catalog authors should register every tool in a purpose category instead of relying on a document shelf as its classification.
 
-Known plugins and configurations are folded under their host (Neovim, tmux, Zsh, or Emacs). Use the host's **+N** control to expand them below it. The surrounding dotted box indicates containment, not a dependency/alternative relationship. Tag filters reveal matching extensions automatically, and explicit search shows extensions directly. Unknown hosts are never guessed; those tools remain visible.
+Tags filter tools and registered relations, while search remains global. Category and domain aliases preserve old links. No hidden mapping of known category, tool, language or host names is applied.
+
+Plugins and configurations with explicit `hosts` are folded under that host. Use the host's **+N** control to expand them below it. The surrounding dotted box indicates containment, not a dependency/alternative relationship. Tag links reveal matching extensions automatically, and explicit search shows extensions directly. Missing hosts never hide tools. Role labels and section names are supplied by the catalog.
+
+Guide records are exposed as linked resources using their `related_tools` metadata; they do not inflate tool counts. The public model retains their source records.
 
 The main explorer restores host expansion through the optional `hosts` hash parameter; each relationship modal keeps its own temporary expansion state. No source catalog membership or relationship is added when a host is shown as context for a plugin category.
 
@@ -68,11 +72,10 @@ Expand each subcategory to see all its tools, or open its relationship map.
 Hosts retain expandable plugins and subcommands with role sections and labels.
 Expand/collapse-all controls apply to both subcategory previews and host children. Existing `overview=macro` links now open the tool overview.
 
-Navigation groups describe tasks: files/search/text, terminal/shell, editing,
-system/network operations, databases, version control, environment management,
-and development/deployment. Standalone configuration tools such as chezmoi are
-shown under environment management instead of inheriting a document-shelf label.
-The source catalog and public model API remain unchanged.
+Navigation groups follow the catalog's domain names, order and category membership.
+Renaming a category or registering a new domain does not require component code changes.
+The catalog, rather than UI overrides, places standalone configuration tools and
+other tools into their purpose categories.
 
 The terminal palette follows explicit `html[data-mode]` choices and the system
 color scheme when the host has no explicit mode, including live mode changes.

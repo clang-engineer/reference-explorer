@@ -14,7 +14,7 @@ export function overviewHtml(groups, expanded, zoom = 1, columns = 2, model = nu
       const tool = model.tools.get(id), children = hierarchy.groups.get(id) || [];
       const hostOpen = expandedHosts.has(id);
       const owner = hierarchy.owners.get(id);
-      const section = owner === 'neovim' ? pluginSection(tool, category.id) : '';
+      const section = owner ? pluginSection(tool, category.id) : '';
       const heading = section && section !== previousSection ? `<span class="dk-purpose-plugin-heading">${esc(section)}</span>` : '';
       previousSection = section;
       return heading + `<span class="dk-purpose-tool${hierarchy.owners.has(id) ? ' dk-purpose-extension dk-extension-child' : ''}"><button type="button" data-tool="${esc(id)}" title="${esc(tool.description || tool.name)}" aria-pressed="${focused === id}">${esc(tool.name)}${owner && pluginRole(tool) ? `<small class="dk-purpose-role">${esc(pluginRole(tool))}</small>` : ''}</button>${children.length ? `<button type="button" data-toggle-host="${esc(id)}" aria-expanded="${hostOpen}" aria-label="${esc(tool.name)} 확장 도구 ${hostOpen ? '접기' : '펼치기'}">${hostOpen ? '−' : '+'}${children.length}</button>` : ''}</span>`;

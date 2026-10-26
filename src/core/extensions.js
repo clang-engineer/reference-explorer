@@ -1,17 +1,4 @@
 import { pluginSection } from './plugin-labels.js';
-// Explicit host metadata only. Do not infer dependencies from alternative/complement edges.
-export function sourceExtensionHosts(toolId, categoryName) {
-  if (categoryName.startsWith('Neovim Plugins · ')) return ['neovim'];
-  if (categoryName === 'tmux Plugins') return ['tmux'];
-  if (categoryName === 'Shell Plugins' && toolId.startsWith('zsh-')) return ['zsh'];
-  if (categoryName === 'Shell Frameworks' && ['oh-my-zsh', 'zimfw', 'prezto', 'zsh4humans'].includes(toolId)) return ['zsh'];
-  if (categoryName === 'Editor Configurations') {
-    if (toolId === 'lazyvim') return ['neovim'];
-    if (toolId === 'doom-emacs') return ['emacs'];
-  }
-  return [];
-}
-
 export function tagHostExpansion(model, categoryId, tag) {
   if (!tag) return new Set();
   return new Set([...model.tools.values()]
@@ -31,10 +18,10 @@ export function toolHierarchy(model, categoryId, visible, expandedHosts = new Se
   }
   const sections = new Map();
   for (const [host, children] of groups) {
-    if (host !== 'neovim') continue;
+    if (!children.some(id => pluginSection(model.tools.get(id), categoryId))) continue;
     const buckets = new Map();
     for (const id of children) {
-      const name = pluginSection(model.tools.get(id), categoryId);
+      const name = pluginSection(model.tools.get(id), categoryId) || '기타 확장';
       if (!buckets.has(name)) buckets.set(name, []);
       buckets.get(name).push(id);
     }

@@ -4,21 +4,7 @@ const assert = require('node:assert/strict');
 async function fixture() {
   const { buildModel } = await import('../src/core/catalog.js');
   const { classifyExplorerModel } = await import('../src/core/classification.js');
-  const category = (name, names, relations = []) => ({ name, commands: names.map(name => ({ name })), relations });
-  return classifyExplorerModel(buildModel({ categories: [
-    category('Shell', ['Zsh', 'bash']),
-    category('Shell Frameworks', ['oh-my-zsh']),
-    category('Shell Prompt', ['starship']),
-    category('Shell Plugins', ['zsh-autosuggestions', 'unknown-shell-plugin']),
-    category('Editors', ['neovim', 'emacs']),
-    category('Editor Configurations', ['LazyVim', 'doom-emacs']),
-    category('Neovim Plugins · AI', ['copilot.lua', 'CopilotChat.nvim'], [{ from: 'copilot.lua', to: 'CopilotChat.nvim', relation: 'complement' }]),
-    category('Neovim Plugins · 탐색', ['vim-tmux-navigator']),
-    category('Database', ['psql', 'vim-dadbod']),
-    category('Neovim Plugins · DB', ['vim-dadbod']),
-    category('Terminal Multiplexer', ['tmux', 'zellij']),
-    category('tmux Plugins', ['vim-tmux-navigator', 'tmux-resurrect']),
-  ] }));
+  return classifyExplorerModel(buildModel(require('./fixtures/taxonomy.cjs').catalog()));
 }
 
 function members(model, category) {
@@ -63,7 +49,7 @@ test('context hosts do not acquire fake memberships or relationship edges, and m
   assert.deepEqual(db.ids, ['psql', 'neovim']);
   assert.ok(!model.tools.get('neovim').categories.includes('role:database'));
   assert.deepEqual(model, before);
-  const orphan = classifyExplorerModel(buildModel({ categories: [{ name: 'Neovim Plugins · AI', commands: [{ name: 'plugin-only' }], relations: [] }] }));
+  const orphan = classifyExplorerModel(buildModel({ categories: [{ id: 'role:editor', name: 'Extensions', commands: [{ name: 'plugin-only', hosts: ['missing-host'] }], relations: [] }] }));
   const tree = toolHierarchy(orphan, 'role:editor', members(orphan, 'role:editor'));
   assert.deepEqual(tree.ids, ['plugin-only']);
   assert.equal(tree.hiddenCount, 0);

@@ -1,0 +1,35 @@
+exports.catalog = () => ({
+  domains: [
+    { id: 'domain:terminal', name: 'Terminal' },
+    { id: 'domain:editor', name: 'Editing' },
+    { id: 'domain:database', name: 'Data' },
+    { id: 'domain:vcs', name: 'Version control' },
+  ],
+  categories: [
+    { id: 'role:shell', name: 'Shell', domain: 'domain:terminal', aliases: ['Shell Frameworks', 'map-2'],
+      tags: [{ id: 'base', name: 'Shells' }, { id: 'frameworks', name: 'Frameworks', aliases: ['Shell Frameworks', 'map-2'] }, { id: 'prompt', name: 'Prompt' }],
+      commands: [
+        { name: 'Zsh', tags: ['base', 'frameworks', 'prompt'] }, { name: 'bash', tags: ['base'] }, { name: 'PowerShell', tags: ['base'] },
+        { name: 'oh-my-zsh', hosts: ['zsh'], tags: ['frameworks'], section: 'Frameworks' }, { name: 'starship', tags: ['prompt'] },
+        { name: 'zsh-autosuggestions', hosts: ['zsh'] }, { name: 'unknown-shell-plugin' },
+      ],
+      relations: [{ from: 'Zsh', to: 'oh-my-zsh', relation: 'wrapper', solution: 'Framework setup', tag: 'frameworks' }, { from: 'Zsh', to: 'starship', relation: 'complement', tag: 'prompt' }],
+    },
+    { id: 'role:editor', name: 'Editors', domain: 'domain:editor', tags: [{ id: 'config', name: 'Configuration' }, { id: 'neovim:AI', name: 'AI' }],
+      commands: [
+        { name: 'neovim' }, { name: 'emacs' },
+        { name: 'LazyVim', hosts: ['neovim'], tags: ['config'], section: '설정·배포판' },
+        { name: 'doom-emacs', hosts: ['emacs'], tags: ['config'], section: '설정·배포판' },
+        { name: 'copilot.lua', hosts: ['neovim'], tags: ['neovim:AI'], section: 'AI', role: 'AI 코드 제안' },
+        { name: 'CopilotChat.nvim', hosts: ['neovim'], tags: ['neovim:AI'], section: 'AI', role: 'AI 대화' },
+        { name: 'vim-tmux-navigator', hosts: ['neovim'], section: '탐색', role: '창·pane 이동' },
+      ], relations: [{ from: 'copilot.lua', to: 'CopilotChat.nvim', relation: 'complement', tag: 'neovim:AI' }],
+    },
+    { id: 'role:database', name: 'Database', domain: 'domain:database', aliases: ['Neovim Plugins · DB', 'map-9'], tags: [{ id: 'neovim', name: 'Plugins', aliases: ['Neovim Plugins · DB', 'map-9'] }],
+      commands: [{ name: 'psql' }, { name: 'vim-dadbod', hosts: ['neovim'], tags: ['neovim'], section: '데이터베이스' }, { name: 'vim-dadbod-completion', hosts: ['neovim'], tags: ['neovim'], section: '데이터베이스' }],
+      relations: [{ from: 'vim-dadbod', to: 'vim-dadbod-completion', relation: 'complement', tag: 'neovim' }],
+    },
+    { id: 'role:terminal-multiplexer', name: 'Terminal Multiplexer', domain: 'domain:terminal', commands: [{ name: 'tmux' }, { name: 'zellij' }, { name: 'vim-tmux-navigator', hosts: ['tmux'] }, { name: 'tmux-resurrect', hosts: ['tmux'] }], relations: [] },
+    { id: 'git', name: 'Git', domain: 'domain:vcs', commands: [{ name: 'git' }], relations: [] },
+  ],
+});

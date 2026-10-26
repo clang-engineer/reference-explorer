@@ -7,8 +7,10 @@ test('expanded Neovim sections preserve every plugin and fit labeled nodes insid
   const {layoutToolHierarchy} = await import('../src/graph/tool-hierarchy.js');
   const {overviewHtml} = await import('../src/graph/overview.js');
   const {navigationGroups} = await import('../src/core/navigation.js');
-  const category = (name, ids) => ({name, commands:ids.map(name=>({name})), relations:[]});
-  const model = classifyExplorerModel(buildModel({categories:[category('Editors',['neovim']),category('Neovim Plugins · 탐색',['flash.nvim','outline.nvim']),category('Neovim Plugins · 편집',['mini.comment'])]}));
+  const model = classifyExplorerModel(buildModel({categories:[{id:'role:editor', name:'Editors', commands:[
+    {name:'neovim'}, {name:'flash.nvim',hosts:['neovim'],section:'탐색'},
+    {name:'outline.nvim',hosts:['neovim'],section:'탐색'}, {name:'mini.comment',hosts:['neovim'],section:'편집',role:'주석 토글'},
+  ],relations:[]}]}));
   const hierarchy = toolHierarchy(model,'role:editor',new Set(model.tools.keys()),new Set(['neovim']));
   assert.deepEqual(hierarchy.sections.get('neovim').map(s=>s.name),['탐색','편집']);
   assert.equal(new Set(hierarchy.ids).size,4);
@@ -37,7 +39,7 @@ test('purpose hierarchy retains merged memberships while restored cards retain s
   const {overviewHtml} = await import('../src/graph/overview.js');
   const {purposeHierarchy} = await import('../src/core/extensions.js');
   const cat=(name,names)=>({name,commands:names.map(name=>({name})),relations:[]});
-  const model=classifyExplorerModel(buildModel({categories:[cat('File Operations',['bat']),cat('Text Search',['bat','grep']),cat('Editors',['neovim']),cat('Neovim Plugins · 編集',['mini.comment'])]}));
+  const model=classifyExplorerModel(buildModel({domains:[{id:'domain:editor',name:'Editing'}],categories:[cat('File Operations',['bat']),cat('Text Search',['bat','grep']),{id:'role:editor',name:'Editors',domain:'domain:editor',commands:[{name:'neovim'},{name:'mini.comment',hosts:['neovim'],section:'編集'}],relations:[]}]}));
   const groups=navigationGroups(model);
   const html=overviewHtml(groups,new Set(),1,2,model);
   assert.equal([...html.matchAll(/data-tool="bat"/g)].length,2);

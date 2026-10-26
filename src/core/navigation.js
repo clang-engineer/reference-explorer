@@ -2,24 +2,14 @@ import { filterModel, readHash } from './catalog.js';
 import { categoryTag } from './classification.js';
 import { tagHostExpansion } from './extensions.js';
 
-// Navigation groups reference existing categories; they never replace their data.
-// Mixed/new categories go to References instead of silently disappearing.
-const GROUPS = [
-  ['files', '파일·검색·텍스트', ['File Operations', 'Text Search', 'Text Processing', 'Navigation', 'Compression', 'Command History', 'CLI 기록·탐색']],
-  ['terminal', '터미널·셸 환경', ['Terminal Multiplexer', 'Terminal Applications', 'tmux Plugins', 'Shell', 'Shell Frameworks', 'Shell Prompt', '셸']],
-  ['editor', '코드·문서 편집', ['Terminal Editors', 'Editors', 'Editor Configurations', '에디터 & TUI']],
-  ['operations', '시스템·네트워크 운영', ['Log Monitoring', 'System Monitoring', 'Network', 'HTTP', 'Benchmarking', '시스템 & 서버']],
-  ['database', '데이터 저장·검색', ['Database', '데이터']],
-  ['vcs', '버전 관리', ['Git', '버전 관리', 'Git & 버전 관리']],
-  ['environment', '설정·창·작업 관리', ['Window Managers', 'macOS', 'Configuration Management', 'Task Management']],
-  ['development', '개발·실행·보안', ['Development', 'Programming Languages', 'Containers', '개발 도구', '보안 & 비밀정보', 'Runtime Management', 'Secret Management']],
-  ['reference', '기타 도구', []],
-];
+// The catalog owns domain membership and ordering. Unclassified generic input
+// remains visible in one fallback group; names never imply a purpose or host.
 export function navigationGroups(model) {
-  const groups = GROUPS.map(([id, name]) => ({ id: 'domain:' + id, name, categories: [], tools: new Set() }));
+  const groups = (model.domains || []).map(domain => ({ ...domain, categories: [], tools: new Set() }));
+  const fallback = { id: 'domain:reference', name: '기타 도구', categories: [], tools: new Set() };
+  if (!groups.some(group => group.id === fallback.id)) groups.push(fallback);
   for (const category of model.categories) {
-    const index = GROUPS.findIndex(([id, , names]) => names.includes(category.name) || (id === 'editor' && category.name.startsWith('Neovim Plugins ·')));
-    const group = groups[index < 0 ? groups.length - 1 : index];
+    const group = groups.find(group => group.id === category.domain) || groups.find(group => group.id === fallback.id);
     const tools = [...model.tools.values()].filter(tool => tool.categories.includes(category.id));
     if (!tools.length) continue;
     group.categories.push({ ...category, count: tools.length });
@@ -45,7 +35,7 @@ export function readExplorerHash(hash, model, groups, defaultView = 'map') {
   const legacy = readHash(hash, model, defaultView);
   const params = new URLSearchParams(hash.replace(/^#/, ''));
   const requested = params.get('scope') || params.get('category');
-  const group = groups.find(group => group.id === requested);
+  const group = groups.find(group => group.id === requested || group.aliases?.includes(requested));
   // Category names make new links stable when upstream categories are reordered.
   const category = model.categories.find(category => category.name === requested || category.id === requested || category.aliases?.includes(requested));
   let scope = group?.id || category?.id || legacy.category;

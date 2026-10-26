@@ -111,10 +111,15 @@ test('custom element module defines reference-explorer', async () => {
 test('plugin, history and database categories have explicit navigation domains', async () => {
   const { buildModel } = await import('../src/core/catalog.js');
   const { navigationGroups } = await import('../src/core/navigation.js');
-  const source = { categories: ['Command History', 'Neovim Plugins · DB', 'tmux Plugins', 'Database', 'Editors'].map((name, index) => ({ name, commands: [{ name: 'item-' + index, description: 'Introduction' }], relations: [] })) };
+  const memberships = ['files', 'database', 'terminal', 'database', 'editor'];
+  const source = {
+    domains: [...new Set(memberships)].map(id => ({id: 'domain:' + id, name: id})),
+    categories: ['Command History', 'DB Extensions', 'Multiplexer Extensions', 'Database', 'Editors'].map((name, index) => ({ name, domain: 'domain:' + memberships[index], commands: [{ name: 'item-' + index, description: 'Introduction' }], relations: [] })),
+  };
   const groups = navigationGroups(buildModel(source));
   assert.equal(groups.find(group => group.id === 'domain:files').categories[0].name, 'Command History');
-  assert.equal(groups.find(group => group.id === 'domain:editor').categories.length, 2);
+  assert.equal(groups.find(group => group.id === 'domain:editor').categories.length, 1);
+  assert.equal(groups.find(group => group.id === 'domain:database').categories.length, 2);
   assert.ok(groups.find(group => group.id === 'domain:database'));
   assert.ok(groups.find(group => group.id === 'domain:terminal'));
   assert.ok(!groups.find(group => group.id === 'domain:reference'));
