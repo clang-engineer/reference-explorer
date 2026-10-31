@@ -239,7 +239,8 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-attribution { font-size: 11px; margin-top: 14px; }
 .dk-app .dk-links { list-style: none; padding: 0; margin: 8px 0; }
 .dk-app .dk-links li { margin: 8px 0; }
-.dk-app .dk-links a { display: block; padding: 10px 12px; border: 1px solid var(--dk-line); }
+.dk-app .dk-links a { display: flex; align-items: center; gap: 6px; padding: 10px 12px; border: 1px solid var(--dk-line); }
+.dk-app .dk-links .dk-link-icon { display: inline-block; flex: 0 0 15px; vertical-align: middle; }
 .dk-app .dk-resource-shortcut { margin-top: 20px; border-top: 1px solid var(--dk-line); }
 .dk-app .dk-placeholder, .dk-app .dk-empty { padding: 24px; max-width: 430px; color: var(--dk-muted); }
 .dk-app .dk-placeholder h2 { font-size: 17px; }
