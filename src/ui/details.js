@@ -10,12 +10,18 @@ export function createDetailPanel(panel, { fetchImpl = globalThis.fetch, clipboa
   let state, request, result;
   let version = 0;
   let disposed = false;
-  function linkHtml(link) {
+  const linkIcons = {
+    official: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
+    custom: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/>',
+    related: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  };
+  function linkHtml(link, type = 'related') {
     const url = safeUrl(link?.url);
-    return url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(link.label || '문서')} <span aria-hidden="true">↗</span></a>` : '';
+    const icon = linkIcons[type] || linkIcons.related;
+    return url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer"><svg class="dk-link-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg> ${esc(link.label || '문서')} <span aria-hidden="true">↗</span></a>` : '';
   }
-  function linksHtml(links, empty) {
-    return links.length ? `<ul class="dk-links">${links.map(link => `<li>${linkHtml(link)}</li>`).join('')}</ul>` : `<p class="dk-muted">${esc(empty)}</p>`;
+  function linksHtml(links, empty, type = 'related') {
+    return links.length ? `<ul class="dk-links">${links.map(link => `<li>${linkHtml(link, type)}</li>`).join('')}</ul>` : `<p class="dk-muted">${esc(empty)}</p>`;
   }
   function show(model, id, tab = 'about', edge = '') {
     if (disposed) return;
@@ -36,18 +42,18 @@ export function createDetailPanel(panel, { fetchImpl = globalThis.fetch, clipboa
       }).join('') : '<p class="dk-muted">등록된 비교·연동 관계가 없습니다. 사용법과 자료에서 이 항목을 더 살펴볼 수 있습니다.</p>');
       if (tool.install) body.innerHTML += `<h3>설치 예시</h3><pre><code>${esc(tool.install)}</code></pre>`;
     } else if (tab === 'usage' && tool.kind === 'guide') {
-      body.innerHTML = `<h3>주제별 문서</h3>${linksHtml(tool.custom, '자료 탭의 문서를 참고하세요.')}<p class="dk-muted">개별 실행 명령이 아닌 비교·작업 절차 문서입니다.</p>`;
+      body.innerHTML = `<h3>주제별 문서</h3>${linksHtml(tool.custom, '자료 탭의 문서를 참고하세요.', 'custom')}<p class="dk-muted">개별 실행 명령이 아닌 비교·작업 절차 문서입니다.</p>`;
     } else if (tab === 'usage') {
-      body.innerHTML = `<h3>빠른 사용법 <small>tldr</small></h3><div data-tldr></div>${tool.usage ? `<h3>사용 구문</h3><pre><code>${esc(tool.usage)}</code></pre>` : ''}${tool.examples.length ? `<h3>카탈로그 예시</h3>${tool.examples.map(example => `<pre><code>${esc(example)}</code></pre>`).join('')}` : ''}<h3>내 치트시트 · 전체 문서</h3>${linksHtml(tool.custom, '등록된 자체 치트시트가 없습니다. 자료 탭의 공식 문서를 참고하세요.')}<p class="dk-muted">긴 문서는 원문 전체를 새 탭에서 엽니다.</p>`;
+      body.innerHTML = `<h3>빠른 사용법 <small>tldr</small></h3><div data-tldr></div>${tool.usage ? `<h3>사용 구문</h3><pre><code>${esc(tool.usage)}</code></pre>` : ''}${tool.examples.length ? `<h3>카탈로그 예시</h3>${tool.examples.map(example => `<pre><code>${esc(example)}</code></pre>`).join('')}` : ''}<h3>내 치트시트 · 전체 문서</h3>${linksHtml(tool.custom, '등록된 자체 치트시트가 없습니다. 자료 탭의 공식 문서를 참고하세요.', 'custom')}<p class="dk-muted">긴 문서는 원문 전체를 새 탭에서 엽니다.</p>`;
       loadTldr(tool, $('[data-tldr]'), version);
     } else {
-      body.innerHTML = `<h3>내 치트시트 · 전체 문서</h3>${linksHtml(tool.custom, '등록된 자체 치트시트가 없습니다.')}<h3>공식 문서</h3>${linksHtml(tool.official, '등록된 공식 문서 링크가 없습니다.')}${tool.links.length ? `<h3>관련 글과 자료</h3>${linksHtml(tool.links, '')}` : ''}<p class="dk-muted">문서를 요약하거나 복제하지 않고 원본으로 연결합니다.</p>`;
+      body.innerHTML = `<h3>내 치트시트 · 전체 문서</h3>${linksHtml(tool.custom, '등록된 자체 치트시트가 없습니다.', 'custom')}<h3>공식 문서</h3>${linksHtml(tool.official, '등록된 공식 문서 링크가 없습니다.', 'official')}${tool.links.length ? `<h3>관련 글과 자료</h3>${linksHtml(tool.links, '')}` : ''}<p class="dk-muted">문서를 요약하거나 복제하지 않고 원본으로 연결합니다.</p>`;
     }
     if (tab === 'about') {
       const settings = tool.links.filter(link => link.label === '내 설정');
       if (settings.length) body.innerHTML += `<div class="dk-resource-shortcut"><h3>내 설정</h3>${linksHtml(settings, '')}</div>`;
     }
-    if (tab === 'about' && tool.custom.length) body.innerHTML += `<div class="dk-resource-shortcut"><h3>내 치트시트 · 전체 문서</h3>${linksHtml(tool.custom, '')}</div>`;
+    if (tab === 'about' && tool.custom.length) body.innerHTML += `<div class="dk-resource-shortcut"><h3>내 치트시트 · 전체 문서</h3>${linksHtml(tool.custom, '', 'custom')}</div>`;
   }
   async function loadTldr(tool, target, sequence = version) {
     if (!target || disposed) return;
