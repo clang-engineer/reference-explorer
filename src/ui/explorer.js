@@ -24,6 +24,52 @@ export function mount(root, config = {}) {
   root.dataset.devkitMounted = 'true';
   const defaults = (config.defaultView || root.dataset.defaultView) === 'sheet' ? 'sheet' : 'map';
   const state = { model: null, groups: [], expanded: new Set(), tool: '', category: 'all', tag: '', query: '', tab: 'about', zoom: 1, error: '', edge: '', overviewMode: 'explore', expandedHosts: new Set(), overviewReturn: null, nodePositions: new Map() };
+  const starsCache = new Map();
+  let starsRequest = 0;
+  async function renderStarsRanking() {
+    const target = $('[data-stars-ranking]');
+    const category = state.model?.categories.find(item => item.id === state.category);
+    const candidates = category ? [...state.model.tools.values()].filter(tool => tool.categories.includes(category.id)).map(tool => {
+      const url = [...(tool.official || []), ...(tool.links || [])].map(link => link.url).find(url => /^https:\/\/github\.com\/[^/]+\/[^/?#]+\/?(?:[?#].*)?$/.test(url || ''));
+      const match = url?.match(/^https:\/\/github\.com\/([^/]+\/[^/?#]+)/);
+      return match ? { name: tool.name, repo: match[1].replace(/\.git$/, '') } : null;
+    }).filter(Boolean) : [];
+    const unique = [...new Map(candidates.map(item => [item.repo.toLowerCase(), item])).values()];
+    const request = ++starsRequest;
+    target.hidden = unique.length < 2;
+    if (target.hidden) return;
+    target.textContent = 'GitHub Stars 순위 불러오는 중…';
+    const values = await Promise.all(unique.map(async item => {
+      if (!starsCache.has(item.repo)) {
+        starsCache.set(item.repo, fetchImpl('https://api.github.com/repos/' + item.repo, { signal: lifetime.signal })
+          .then(response => response.ok ? response.json() : null)
+          .then(data => Number.isFinite(data?.stargazers_count) ? data.stargazers_count : null)
+          .catch(() => null));
+      }
+      return { ...item, stars: await starsCache.get(item.repo) };
+    }));
+    if (request !== starsRequest || lifetime.signal.aborted) return;
+    const ranked = values.filter(item => item.stars !== null).sort((a, b) => b.stars - a.stars);
+    if (!ranked.length) { target.textContent = 'GitHub 통계를 불러올 수 없습니다. 잠시 후 다시 시도하세요.'; return; }
+    const heading = document.createElement('strong');
+    heading.textContent = 'GitHub Stars 순위';
+    const list = document.createElement('ol');
+    for (const item of ranked) {
+      const li = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = 'https://github.com/' + item.repo;
+      link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = item.name;
+      li.append(link, document.createTextNode(' · ★ ' + item.stars.toLocaleString()));
+      list.append(li);
+    }
+    target.replaceChildren(heading, list);
+    if (ranked.length !== unique.length) {
+      const note = document.createElement('small');
+      note.textContent = ' · 일부 저장소 통계는 조회되지 않았습니다.';
+      target.append(note);
+    }
+  }
   let loadRequest = 0;
   let catalogRequest;
   root.classList.add('dk-app');
@@ -67,6 +113,7 @@ export function mount(root, config = {}) {
     const overview = state.category === 'all' && !state.query.trim();
     root.dataset.currentView = 'explorer';
     renderNavigation($, state);
+    void renderStarsRanking();
     renderTagFilters($('[data-category-tags]'), state.model, state.query.trim() ? 'all' : state.category, state.tag);
     $('[data-status]').textContent = state.error || (overview ? `${state.model.tools.size}개 항목 · 용도별로 찾고 호스트의 하위 항목을 펼쳐보세요` : `${filtered.matches.size}개 도구 · ${filtered.edges.length}개 관계${state.query ? ' · 모든 분야 검색' : ''}`);
     $('[data-retry]').hidden = !state.error;
