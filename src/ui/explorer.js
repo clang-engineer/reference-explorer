@@ -377,9 +377,11 @@ export function mount(root, config = {}) {
       state.groups = navigationGroups(state.model);
       state.error = '';
       $('[data-search]').disabled = false; restore();
-    } catch {
+    } catch (error) {
       if (request !== loadRequest) return;
-      $('[data-status]').textContent = 'Reference 데이터를 불러오지 못했습니다. 네트워크 연결과 카탈로그 형식을 확인하고 다시 시도하세요.';
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('[reference-explorer] Failed to load catalog:', error);
+      $('[data-status]').textContent = 'Reference 데이터를 불러오지 못했습니다: ' + message;
       $('[data-retry]').hidden = false;
     }
   }
