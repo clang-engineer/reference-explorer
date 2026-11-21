@@ -93,6 +93,7 @@ export function buildModel(catalog = { categories: [] }, cheats = { groups: [] }
   for (const [index, source] of catalog.categories.entries()) {
     const category = { id: source.id || 'map-' + index, name: String(source.name || '기타'), why: source.why || '',
       domain: source.domain, aliases: [...(source.aliases || [])],
+      discoveryLinks: (source.discovery_links || []).map(link => ({ label: String(link.label || 'GitHub 탐색'), url: safeUrl(link.url) })).filter(link => link.url),
       tags: (source.tags || []).map(tag => ({ ...tag, aliases: [...(tag.aliases || [])] })) };
     categories.push(category);
     const names = new Map();
