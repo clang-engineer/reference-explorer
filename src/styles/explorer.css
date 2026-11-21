@@ -331,3 +331,8 @@ html[data-mode='light'] .dk-app {
 .dk-app .dk-plugin-section rect { fill: none; stroke: var(--dk-line); stroke-dasharray: 3 4; }
 .dk-app .dk-plugin-section text, .dk-app .dk-plugin-role { fill: var(--dk-muted); font-size: 10px; pointer-events: none; }
 .dk-app .dk-edge.is-muted { opacity: .18; }
+
+/* Category-level external discovery, separate from tool links. */
+.dk-app .dk-board-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dk-app .dk-board-heading h3 { margin: 0; }
+.dk-app .dk-discovery-link { font-size: 12px; white-space: nowrap; color: var(--dk-accent); }
