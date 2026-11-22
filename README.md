@@ -50,6 +50,26 @@ mount(document.querySelector('[data-reference-explorer]'), {
 
 The default style is terminal-inspired: dark green, monospace typography, and square panels. Set `data-mode="light"` on the host `<html>` element to opt into a light palette; `data-mode="dark"` uses the default dark palette. The host controls its own page background and layout.
 
+## Host styling / design tokens
+
+The default terminal-inspired appearance remains unchanged. Hosts can override CSS custom properties on `reference-explorer` without forking the stylesheet. The variables inherit into the internal `.dk-app` and take precedence over the default light/dark palettes.
+
+```css
+reference-explorer {
+  --re-font: inherit;
+  --re-bg: transparent;
+  --re-card: var(--card-bg, #fff);
+  --re-text: var(--text-color, #222);
+  --re-muted: var(--text-muted-color, #777);
+  --re-line: var(--main-border-color, #ddd);
+  --re-accent: var(--link-color, #2563eb);
+  --re-tint: var(--card-bg, #f5f5f5);
+  --re-radius: 8px;
+}
+```
+
+Available palette tokens: `--re-bg`, `--re-card`, `--re-text`, `--re-muted`, `--re-line`, `--re-accent`, `--re-tint`, `--re-edge`, `--re-domain`, `--re-root`, `--re-on-root`, `--re-root-hint`. Typography: `--re-font`. Controls: `--re-radius`. Optional `--re-color-scheme` sets the native control scheme. Undefined tokens retain the original theme-specific defaults.
+
 ## Explorer classification
 
 The catalog owns classification. `tool_map.domains` defines navigation groups; each category declares its stable `id`, `domain`, optional `aliases` and `tags`. The component does not merge or reclassify categories by name. Generic catalogs without taxonomy metadata remain visible in a fallback group.
