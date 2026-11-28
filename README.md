@@ -1,5 +1,7 @@
 # reference-explorer
 
+[![npm](https://img.shields.io/npm/v/@clang.engineer/reference-explorer)](https://www.npmjs.com/package/@clang.engineer/reference-explorer)
+
 **Turn a reference catalog into an interactive, searchable tool map.**
 
 A reusable Web Component and JavaScript module. Your host owns the data; the component renders it.
