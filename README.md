@@ -36,10 +36,13 @@ npm install @clang.engineer/reference-explorer
 import { mount } from '@clang.engineer/reference-explorer';
 import '@clang.engineer/reference-explorer/style.css';
 
-mount(document.querySelector('[data-reference-explorer]'), {
+// Use a plain container, e.g. <div id="explorer"></div>.
+mount(document.querySelector('#explorer'), {
   catalogUrl: 'https://raw.githubusercontent.com/clang-engineer/devkit/main/reference/catalog.json',
 });
 ```
+
+The package also auto-mounts the first `[data-reference-explorer]` or `[data-devkit]` container on import. For explicit configuration, use a plain container as above; repeated mounts return the existing instance rather than applying new options.
 
 ## Appearance
 
