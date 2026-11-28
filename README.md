@@ -4,6 +4,8 @@
 
 A reusable Web Component and JavaScript module. Your host owns the data; the component renders it.
 
+[Live Devkit integration](https://clang-engineer.github.io/devkit/)
+
 ## Highlights
 
 - Purpose-based overview, relationship maps, and searchable tool lists.
@@ -39,14 +41,18 @@ mount(document.querySelector('[data-reference-explorer]'), {
 });
 ```
 
-
 ## Appearance
 
 The default style is terminal-inspired: dark green, monospace typography, and square panels. Set `data-mode="light"` on the host `<html>` element to opt into a light palette; `data-mode="dark"` uses the default dark palette. The host controls its own page background and layout.
 
-
 ## Explore
 
 - [Devkit catalog](https://github.com/clang-engineer/devkit)
-- [Local examples](examples/) — run `python3 -m http.server 8000` from the repository root.
+- [Local examples](examples/) — run `python3 -m http.server 8000` from the repository root, then open `http://localhost:8000/examples/basic.html`.
 - [Integration manual](docs/manual.md) — JavaScript API, styling, catalog structure, and development.
+
+## Development
+
+Run `npm test` from the repository root.
+
+MIT License.
