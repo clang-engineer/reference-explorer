@@ -37,18 +37,11 @@ npm test
 
 ## JavaScript API
 
-```js
-import { mount } from '@clang.engineer/reference-explorer';
-import '@clang.engineer/reference-explorer/style.css';
-
-mount(document.querySelector('[data-reference-explorer]'), {
-  catalogUrl: 'https://raw.githubusercontent.com/clang-engineer/devkit/main/reference/catalog.json',
-});
-```
+See [JavaScript API in the README](../README.md#javascript-api).
 
 ## Appearance
 
-The default style is terminal-inspired: dark green, monospace typography, and square panels. Set `data-mode="light"` on the host `<html>` element to opt into a light palette; `data-mode="dark"` uses the default dark palette. The host controls its own page background and layout.
+See [Appearance in the README](../README.md#appearance).
 
 ## Host styling / design tokens
 
