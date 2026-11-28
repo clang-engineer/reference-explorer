@@ -100,5 +100,6 @@ import { mount } from '@clang.engineer/reference-explorer';
 import { fromDevkitCatalog } from '@clang.engineer/reference-explorer/adapters/devkit';
 
 const catalog = await fetch(url).then(response => response.json());
+// root should be a plain container without auto-mount attributes.
 mount(root, { model: fromDevkitCatalog(catalog) });
 ```
